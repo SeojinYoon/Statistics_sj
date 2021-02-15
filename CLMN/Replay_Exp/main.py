@@ -1,25 +1,34 @@
 """
 Library Settings
 """
+
+# source path 수정 필요
+source_path = "/Users/yoonseojin/Statistics_sj/CLMN/Replay_Exp"
+
+import os
+os.chdir(source_path)
+
 from Psychopy_Package.Psychopy_util import Text_st_bundle, Text_st_unit, \
     Sequence_st_text_unit, Sequence_st_bundle, St_Pakcage, Experiment
-from Preprcoessing_Package.sj_util import get_random_sample_in_codes
-from Preprcoessing_Package.sj_shuffle import shuffle_list
+from Preprocessing_Package.sj_util import get_random_sample_in_codes
+from Preprocessing_Package.sj_shuffle import shuffle_list
+import itertools
+from Higher_function.sj_higher_function import recursive_map
 
 """
 Data Setting
 """
 # making units
-import itertools
+
 unit_data = ["1", "2", "3", "4"]
 list_units = list(itertools.permutations(unit_data, 4))
 shuffle_list(list_units)
 
-from Higher_function.sj_higher_function import recursive_map
 units = recursive_map(list_units, lambda x: Text_st_unit(x, showing_time=0.5))
 
+
 ISIs = []
-ISI_file_path = "/Users/yoonseojin/Statistics_sj/CLMN/Replay_Exp/ISI.txt"
+ISI_file_path = os.path.join(source_path, "ISI.txt")
 with open(ISI_file_path, "r") as f:
     ISIs = f.readlines()
     ISIs = list(map(lambda x: int(x), ISIs))
@@ -88,15 +97,14 @@ for t in range(0,4):
 
 # 나중에 사용할때 이것만 고쳐주면 됨
 block_index = 6
-data_dir_path = "/Users/yoonseojin"
+data_dir_path = source_path
 participant_name = "seojin"
-iteration = "1"
 
 exp = Experiment(monitor_size=[400,400],
                  is_full_screen = False,
                  data_dir_path = data_dir_path,
                  participant_name = participant_name,
-                 iteration = iteration,
+                 iteration = str(block_index),
                  ready_keys=["r"],
                  start_keys=["s"],
                  stop_keys=["q"],

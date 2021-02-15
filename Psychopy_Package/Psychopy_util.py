@@ -183,7 +183,7 @@ class Psy_display_manager:
             print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.text, stimulus.showing_time))
             self.stimulus_showing_handler("single text", stimulus.text, stimulus.showing_time)
         elif isinstance(stimulus, Sequence_st_text_unit):
-            self.event_manager.set_is_activate_one_input(False)
+            self.event_manager.set_is_activate_one_input(True)
             self.event_manager.set_is_activate_multiple_input(is_multiple_activate = True,
                                                               target_input_count = len(stimulus.texts))
             text = self.visual.TextStim(win=self.win,

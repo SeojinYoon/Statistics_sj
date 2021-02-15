@@ -8,8 +8,8 @@ y = np.sin(x)
 
 plt.plot(x, y, 'o')
 
-from Preprcoessing_Package import sj_util
-from Preprcoessing_Package import sj_preprocessing
+from Preprocessing_Package import sj_util
+from Preprocessing_Package import sj_preprocessing
 sj_util.partition_d1(10, 20, 10)
 
 sj_preprocessing.counter([1,2,3], [(0,1), (1,2), (2,3)], "Left")

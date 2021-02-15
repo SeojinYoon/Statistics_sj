@@ -62,11 +62,11 @@ import os
 import pandas as pd
 import matplotlib.pylab as plt
 import numpy as np
-from Preprcoessing_Package import sj_preprocessing
-from Preprcoessing_Package import sj_util
+from Preprocessing_Package import sj_preprocessing
+from Preprocessing_Package import sj_util
 from Visualization_Package import F_Visualize
-from Preprcoessing_Package import sj_dictionary
-from Preprcoessing_Package import F_Algo
+from Preprocessing_Package import sj_dictionary
+from Preprocessing_Package import F_Algo
 from Statistics_Package import stat_module
 import seaborn as sns
 from Higher_function import sj_higher_function
