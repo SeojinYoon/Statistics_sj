@@ -71,9 +71,12 @@ def make_blocks(u_sets, seq_set_list):
         for i in range(0, sequence_length):
             combination_unit = (u_sets[i], seq_list[i])
             combination_units.append(combination_unit)
-        blocks.append(list(map(lambda x: St_Pakcage(bundles=[x[0], x[1]],
-                                                    bundle_intervals=time_interval_between_bundles,
-                                                    interval_text="..."), combination_units)))
+
+        datas = list(map(lambda x: St_Pakcage(bundles=[x[0], x[1]],
+                                      bundle_intervals=time_interval_between_bundles,
+                                      interval_text="..."), combination_units))
+        datas.append(Text_st_unit("End session", showing_time=1))
+        blocks.append(datas)
 
         # Sequence is mached all, so they need to be shuffled
         shuffle_list(seq_list)
@@ -82,9 +85,12 @@ def make_blocks(u_sets, seq_set_list):
         for i in range(0, len(seq_list)):
             combination_unit = (u_sets[i+sequence_length], seq_list[i])
             combination_units.append(combination_unit)
-        blocks.append(list(map(lambda x: St_Pakcage(bundles=[x[0], x[1]],
-                                                     bundle_intervals=time_interval_between_bundles,
-                                                     interval_text="..."), combination_units)))
+
+        datas = list(map(lambda x: St_Pakcage(bundles=[x[0], x[1]],
+                                                    bundle_intervals=time_interval_between_bundles,
+                                                    interval_text="..."), combination_units))
+        datas.append(Text_st_unit("End session", showing_time=10))
+        blocks.append(datas)
 
         # u_sets and sequence are mached all, so they need to be shuffled
         shuffle_list(u_sets)
@@ -109,12 +115,10 @@ exp = Experiment(monitor_size=[400,400],
                  stop_keys=["q"],
                  input_device="keyboard")
 
-exp.wait_blocks(blocks=list(map(lambda x: [x[0]], blocks))[0:3],
-                iteration=0,
-                end_message="End")
+exp.wait_blocks(blocks=blocks,
+                iteration=0)
 
 """
 block_index = 6
-exp.wait_pkg(pkgs=blocks[block_index],
-             end_message="End")
+exp.wait_pkg(pkgs=blocks[block_index])
 """
