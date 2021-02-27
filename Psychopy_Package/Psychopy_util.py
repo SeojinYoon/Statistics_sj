@@ -104,10 +104,45 @@ class St_Pakcage:
             interval_units.append(BundleInterval_st_unit(interval_text, showing_time=bundle_intervals[remain]))
         self.interval_units = interval_units
 
-class Psy_display_manager:
-    def __init__(self, input_interface_manager, event_manager):
+class Intermediater:
+    def __init__(self):
+        print("Init Intermeidater")
+
+    def set_input_interface_manager(self, input_interface_manager):
         self.input_interface_manager = input_interface_manager
+
+    def set_display_manager(self, display_manager):
+        self.display_manager = display_manager
+
+    def set_event_manager(self, event_manager):
         self.event_manager = event_manager
+
+    def one_input_only(self):
+        self.event_manager.set_is_activate_one_input(True)
+        self.event_manager.set_is_activate_multiple_input(False, 0)
+
+    def one_multi_input_both(self, multi_input_count):
+        self.event_manager.set_is_activate_one_input(True)
+        self.event_manager.set_is_activate_multiple_input(is_multiple_activate=True,
+                                                          target_input_count=multi_input_count)
+
+    def invalid_event(self):
+        self.event_manager.set_is_activate_one_input(False)
+        self.event_manager.set_is_activate_multiple_input(False, 0)
+
+    def listen_input(self, input):
+        self.event_manager.listen_input(input)
+
+    def wait_start(self):
+        self.input_interface_manager.wait_start()
+
+    def insert_interrupt(self, interrupt):
+        self.input_interface_manager.set_interrupt_operation(interrupt)
+        self.input_interface_manager.insert_interrupt(True)
+
+class Psy_display_manager:
+    def __init__(self, intermediater):
+        self.intermediater = intermediater
         self.timer = Direct_fire_timer()
         self.current_step = -1
         self.current_showing_stimlus = None
@@ -132,7 +167,7 @@ class Psy_display_manager:
 
         if keys[0] in ready_keys:
             self.show_stimulus(Text_st_unit(str(iteration) + " trial" + " Ready" ))
-            self.input_interface_manager.wait_start()
+            self.intermediater.wait_start()
             return True
         else:
             self.win.close()
@@ -141,8 +176,8 @@ class Psy_display_manager:
     def show_stimulus(self, stimulus):
         self.current_showing_stimlus = stimulus
         if isinstance(stimulus, Image_st_unit):
-            self.event_manager.set_is_activate_one_input(True)
-            self.event_manager.set_is_activate_multiple_input(False, 0)
+            self.intermediater.one_input_only()
+
             print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.image_path, stimulus.showing_time))
             self.stimulus_showing_handler("image", stimulus.image_path, stimulus.showing_time)
         elif isinstance(stimulus, ISI_st_unit):
@@ -157,8 +192,7 @@ class Psy_display_manager:
             print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.text, stimulus.showing_time))
             self.stimulus_showing_handler("ISI", stimulus.text, stimulus.showing_time)
         elif isinstance(stimulus, BundleInterval_st_unit):
-            self.event_manager.set_is_activate_one_input(True)
-            self.event_manager.set_is_activate_multiple_input(False, 0)
+            self.intermediater.one_input_only()
             text = self.visual.TextStim(win=self.win,
                                         text=stimulus.text,
                                         height=stimulus.text_height,
@@ -170,8 +204,7 @@ class Psy_display_manager:
             print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.text, stimulus.showing_time))
             self.stimulus_showing_handler("Bundle Interval", stimulus.text, stimulus.showing_time)
         elif isinstance(stimulus, Text_st_unit):
-            self.event_manager.set_is_activate_one_input(True)
-            self.event_manager.set_is_activate_multiple_input(False, 0)
+            self.intermediater.one_input_only()
             text = self.visual.TextStim(win=self.win,
                                    text=stimulus.text,
                                    height=stimulus.text_height,
@@ -183,9 +216,7 @@ class Psy_display_manager:
             print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.text, stimulus.showing_time))
             self.stimulus_showing_handler("single text", stimulus.text, stimulus.showing_time)
         elif isinstance(stimulus, Sequence_st_text_unit):
-            self.event_manager.set_is_activate_one_input(True)
-            self.event_manager.set_is_activate_multiple_input(is_multiple_activate = True,
-                                                              target_input_count = len(stimulus.texts))
+            self.intermediater.one_multi_input_both(len(stimulus.texts))
             text = self.visual.TextStim(win=self.win,
                                         text=" - ".join(stimulus.texts),
                                         height=stimulus.text_height,
@@ -212,10 +243,9 @@ class Psy_display_manager:
         def show_next_stim():
             # Display manager needs main thread but interface manager occupies main thread when while while loop is running
             # so, display manager gets interface manager to interrupt for displaying stimulus
-            self.input_interface_manager.set_interrupt_operation(lambda: self.show_stimuluses(stimuluses=stimuluses[1:],
-                                                                                              end_message=end_message,
-                                                                                              end_process=end_process))
-            self.input_interface_manager.insert_interrupt(True)
+            self.intermediater.insert_interrupt(lambda: self.show_stimuluses(stimuluses=stimuluses[1:],
+                                                                             end_message=end_message,
+                                                                             end_process=end_process))
 
         if stimulus_length > 1:
             if stimulus.showing_time > 0:
@@ -226,12 +256,12 @@ class Psy_display_manager:
             # when stimulus list is over, display manager shows ending message
             def ending():
                 def last_operation():
-                    self.show_stimulus(Text_st_unit(end_message))
+                    self.show_stimulus(Text_st_unit(end_message, showing_time=1))
                     if end_process != None:
                         end_process()
 
-                self.input_interface_manager.set_interrupt_operation(last_operation)
-                self.input_interface_manager.insert_interrupt(True)
+                self.intermediater.insert_interrupt(last_operation)
+
             self.show_delay_after(stimulus.showing_time, ending)
 
     def show_text_bundle(self, bundle, end_message = "", end_process = None):
@@ -308,16 +338,16 @@ class Psy_display_manager:
         self.timer.direct_proc()
 
 class Input_interface_manager:
-    def __init__(self, start_keys, stop_keys, event_manager, device_name="keyboard"):
+    def __init__(self, start_keys, stop_keys, intermediater, device_name="keyboard"):
         self.start_keys = start_keys
         self.stop_keys = stop_keys
         self.device_name = device_name
         self.interrupt_queue = queue.Queue()
 
-        if isinstance(event_manager, Event_manager):
-            self.event_manager = event_manager
+        if isinstance(intermediater, Intermediater):
+            self.intermediater = intermediater
         else:
-            raise Exception("Event_manager Type Error!")
+            raise Exception("intermediater Type Error!")
 
     def set_stop_process(self, stop_proc):
         self.stop_proc = stop_proc
@@ -362,8 +392,8 @@ class Input_interface_manager:
                         self.stop_proc()
                         break
                     else:
-                        if self.event_manager is not None:
-                            self.event_manager.listen_input(input)
+                        if self.intermediater is not None:
+                            self.intermediater.listen_input(input)
                         else:
                             print("Event Manager is not setted out")
 
@@ -425,7 +455,6 @@ class Experiment:
                  is_full_screen,
                  data_dir_path,
                  participant_name,
-                 iteration,
                  ready_keys = [],
                  start_keys = [],
                  stop_keys = [],
@@ -435,27 +464,28 @@ class Experiment:
         """
         self.data_dir_path = data_dir_path
         self.participant_name = participant_name
-        self.iteration = iteration
-        self.stimulus_csv_manager = CsvManager(dir_path=self.data_dir_path,
-                                               file_name= "stimulus_"+ participant_name + "_" + str(iteration))
-        self.stimulus_csv_manager.write_header(["Step", "Event_Type", "Stimulus", "display_seconds", "start_seconds"])
-        self.response_csv_manager = CsvManager(dir_path=self.data_dir_path,
-                                               file_name= "response_"+ participant_name + "_" + str(iteration))
-        self.response_csv_manager.write_header(["Step", "Response", "seconds"])
         self.ready_keys = ready_keys
 
         """
         Display and interface Setting
         """
+        self.intermediater = Intermediater()
+
         self.event_manager = Event_manager()
         self.interface = Input_interface_manager(start_keys=start_keys,
                                                  stop_keys=stop_keys,
-                                                 event_manager=self.event_manager,
+                                                 intermediater=self.intermediater,
                                                  device_name=input_device)
 
-        self.display_manager = Psy_display_manager(self.interface, self.event_manager)
+        self.display_manager = Psy_display_manager(intermediater=self.intermediater)
         self.display_manager.open_window(size=monitor_size, color=[-1, -1, -1], is_full_screen=is_full_screen)
+
+        self.intermediater.set_input_interface_manager(self.interface)
+        self.intermediater.set_display_manager(self.display_manager)
+        self.intermediater.set_event_manager(self.event_manager)
+
         self.start_time = time.time()
+
         def log_showing(type, stimulus, showing_time):
             # ["Step", "Event_Type", "Stimulus", "display_seconds", "start_seconds"]
             self.stimulus_csv_manager.write_row([self.display_manager.current_step, type, stimulus, showing_time, time.time() - self.start_time])
@@ -484,28 +514,56 @@ class Experiment:
         self.event_manager.single_input_handler = single_input_handler
         self.event_manager.multiple_input_handler = multiple_input_handler
 
-    def wait_pkg(self, pkgs, end_message):
-        return_value = self.display_manager.wait_start(iteration=self.iteration, ready_keys=self.ready_keys, stop_keys=self.interface.stop_keys)
+    def setting_log(self, iteration):
+        self.stimulus_csv_manager = CsvManager(dir_path=self.data_dir_path,
+                                               file_name="stimulus_" + self.participant_name + "_" + str(iteration))
+        self.stimulus_csv_manager.write_header(
+            ["Step", "Event_Type", "Stimulus", "display_seconds", "start_seconds"])
+        self.response_csv_manager = CsvManager(dir_path=self.data_dir_path,
+                                               file_name="response_" + self.participant_name + "_" + str(iteration))
+        self.response_csv_manager.write_header(["Step", "Response", "seconds"])
+
+    def wait_pkg(self, pkgs, iteration, end_message, addition_end_proc):
+        self.setting_log(iteration)
+
+        return_value = self.display_manager.wait_start(iteration=iteration, ready_keys=self.ready_keys, stop_keys=self.interface.stop_keys)
 
         def start():
             self.start_time = time.time()
 
+            def end_proc():
+                self.invalid_input_event()
+                addition_end_proc()
+
             self.display_manager.show_packages_with_step_counting(pkgs=pkgs,
                                                                   end_message=end_message,
-                                                                  end_process=self.invalid_input_event)
+                                                                  end_process=end_proc)
             self.interface.monitoring()
         if return_value == True:
             start()
 
-    def wait_stimuluses(self, stimuluses, end_message):
-        return_value = self.display_manager.wait_start(iteration=self.iteration, ready_keys=self.ready_keys, stop_keys=self.interface.stop_keys)
+    def wait_blocks(self, blocks, iteration, end_message):
+        def end():
+            if iteration+1 < len(blocks):
+                self.wait_blocks(blocks, iteration+1, end_message)
+
+        self.wait_pkg(pkgs=blocks[iteration], iteration=iteration, end_message=end_message, addition_end_proc=end)
+
+    def wait_stimuluses(self, stimuluses, iteration, end_message, addition_end_proc):
+        self.setting_log(iteration)
+
+        return_value = self.display_manager.wait_start(iteration=iteration, ready_keys=self.ready_keys, stop_keys=self.interface.stop_keys)
 
         def start():
             self.start_time = time.time()
 
+            def end_proc():
+                self.invalid_input_event()
+                addition_end_proc()
+
             self.display_manager.show_stimuluses_with_step_counting(stimuluses=stimuluses,
                                                                     end_message=end_message,
-                                                                    end_process=self.invalid_input_event)
+                                                                    end_process=end_proc)
             self.interface.monitoring()
         if return_value == True:
             start()

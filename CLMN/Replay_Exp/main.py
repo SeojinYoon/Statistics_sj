@@ -96,7 +96,7 @@ for t in range(0,4):
     blocks += make_blocks(u_sets, seq_set_list)
 
 # 나중에 사용할때 이것만 고쳐주면 됨
-block_index = 6
+
 data_dir_path = source_path
 participant_name = "seojin"
 
@@ -104,12 +104,17 @@ exp = Experiment(monitor_size=[400,400],
                  is_full_screen = False,
                  data_dir_path = data_dir_path,
                  participant_name = participant_name,
-                 iteration = str(block_index),
                  ready_keys=["r"],
                  start_keys=["s"],
                  stop_keys=["q"],
                  input_device="keyboard")
 
+exp.wait_blocks(blocks=list(map(lambda x: [x[0]], blocks))[0:3],
+                iteration=0,
+                end_message="End")
+
+"""
+block_index = 6
 exp.wait_pkg(pkgs=blocks[block_index],
              end_message="End")
-
+"""
