@@ -14,7 +14,7 @@ from Preprocessing_Package.sj_util import get_random_sample_in_codes
 from Preprocessing_Package.sj_shuffle import shuffle_list
 import itertools
 from Higher_function.sj_higher_function import recursive_map
-
+# End session showing time 1초로
 """
 Data Setting
 """
@@ -25,7 +25,6 @@ list_units = list(itertools.permutations(unit_data, 4))
 shuffle_list(list_units)
 
 units = recursive_map(list_units, lambda x: Text_st_unit(x, showing_time=0.5))
-
 
 ISIs = []
 ISI_file_path = os.path.join(source_path, "ISI.txt")
@@ -75,7 +74,8 @@ def make_blocks(u_sets, seq_set_list):
         datas = list(map(lambda x: St_Pakcage(bundles=[x[0], x[1]],
                                       bundle_intervals=time_interval_between_bundles,
                                       interval_text="..."), combination_units))
-        datas.append(Text_st_unit("End session", showing_time=1))
+
+        # datas.append(Text_st_unit("End session", showing_time=10))
         blocks.append(datas)
 
         # Sequence is mached all, so they need to be shuffled
@@ -89,7 +89,7 @@ def make_blocks(u_sets, seq_set_list):
         datas = list(map(lambda x: St_Pakcage(bundles=[x[0], x[1]],
                                                     bundle_intervals=time_interval_between_bundles,
                                                     interval_text="..."), combination_units))
-        datas.append(Text_st_unit("End session", showing_time=10))
+        # datas.append(Text_st_unit("End session", showing_time=10))
         blocks.append(datas)
 
         # u_sets and sequence are mached all, so they need to be shuffled
@@ -113,6 +113,7 @@ exp = Experiment(monitor_size=[400,400],
                  ready_keys=["r"],
                  start_keys=["s"],
                  stop_keys=["q"],
+                 valid_keys=["4", "3", "2", "1"],
                  input_device="keyboard")
 
 exp.wait_blocks(blocks=blocks,
@@ -120,5 +121,5 @@ exp.wait_blocks(blocks=blocks,
 
 """
 block_index = 6
-exp.wait_pkg(pkgs=blocks[block_index])
+exp.wait_pkg(pkgs=blocks[block_index], iteration = block_index)
 """

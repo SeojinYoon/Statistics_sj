@@ -27,21 +27,21 @@ class Image_st_unit(St_Unit):
         self.image_path = image_path
 
 class Text_st_unit(St_Unit):
-    def __init__(self, text, color=[1,1,1], showing_time = 0.0, text_height=0.3):
+    def __init__(self, text, color=[0,0,0], showing_time = 0.0, text_height=0.3):
         super().__init__(showing_time)
         self.text = text
         self.color = color
         self.text_height = text_height
 
 class ISI_st_unit(St_Unit):
-    def __init__(self, text, color=[1,1,1], showing_time = 0.0, text_height=0.3):
+    def __init__(self, text, color=[0,0,0], showing_time = 0.0, text_height=0.3):
         super().__init__(showing_time)
         self.text = text
         self.color = color
         self.text_height = text_height
 
 class BundleInterval_st_unit(St_Unit):
-    def __init__(self, text, color=[1,1,1], showing_time = 0.0, text_height=0.3):
+    def __init__(self, text, color=[0,0,0], showing_time = 0.0, text_height=0.3):
         super().__init__(showing_time)
         self.text = text
         self.color = color
@@ -133,6 +133,9 @@ class Intermediater:
     def listen_input(self, input):
         self.event_manager.listen_input(input)
 
+    def set_valid_keys(self, keys):
+        self.valid_keys = keys
+
     def wait_start(self):
         self.input_interface_manager.wait_start()
 
@@ -164,7 +167,7 @@ class Psy_display_manager:
 
     def wait_start(self, ready_keys, stop_keys, iteration):
         # 원래는 interface manager에서 wait key를 하는게 맞으나... 편의상 삽입
-        self.show_stimulus(Text_st_unit("Press + " + str(ready_keys) + " key to start"))
+        self.show_stimulus(Text_st_unit(""))
         keys = psychopy.event.waitKeys(keyList=ready_keys + stop_keys)
 
         if keys[0] in ready_keys:
@@ -331,7 +334,9 @@ class Psy_display_manager:
                 stimuluses += self.make_stimulus_in_text_bundle(bundle)
             elif isinstance(bundle, Sequence_st_bundle):
                 stimuluses += self.make_stimulus_in_seq_bundle(bundle)
-            stimuluses.append(pkg.interval_units[i])
+
+            if i != len(pkg.bundles)-1: # 맨 마지막 번들 뒤에는 번들 인터벌 넣어주지 않음
+                stimuluses.append(pkg.interval_units[i])
         return stimuluses
 
     def close_window(self):
@@ -351,6 +356,7 @@ class Input_interface_manager:
         self.device_name = device_name
         self.interrupt_queue = queue.Queue()
         self.stop_proc = None
+        self.is_stop_monitoring = False
 
         if isinstance(intermediater, Intermediater):
             self.intermediater = intermediater
@@ -391,6 +397,10 @@ class Input_interface_manager:
                     # This code is needed because The Keyboard listening is busy-wait so We can't anything while listening is processed
                     if self.interrupt_operation != None:
                         self.interrupt_operation()
+                        # Interrupt가 일어난 경우에, stop monitoring 콜이 발생한 경우, 루프 중지
+                        if self.is_stop_monitoring:
+                            self.is_stop_monitoring = False
+                            break
 
                 keys = psychopy.event.getKeys()
                 if self.is_inputted_sth(keys):
@@ -413,9 +423,11 @@ class Input_interface_manager:
     def get_input(self, keys):
         return keys[0]
 
+    def set_is_stop_monitoring(self, is_stop_monitoring):
+        self.is_stop_monitoring = is_stop_monitoring
 
 class Event_manager:
-    def __init__(self, is_activate=True, is_activate_one_input=False, is_activate_multiple_input=False):
+    def __init__(self, is_activate=True, is_activate_one_input=False, is_activate_multiple_input=False, valid_keys=None):
         self.is_activate = is_activate
         self.is_activate_one_input = is_activate_one_input
         self.is_activate_multiple_input = is_activate_multiple_input
@@ -423,9 +435,10 @@ class Event_manager:
         self.input_buffer = []
 
         self.target_input_count = 0
+        self.valid_keys = valid_keys
 
     def listen_input(self, input):
-        if self.is_activate == True:
+        if self.is_activate == True and (input in self.valid_keys):
             self.input_buffer.append(input)
             self.listen_one_input(input)
             self.listen_multiple_input(self.input_buffer)
@@ -468,6 +481,7 @@ class Experiment:
                  ready_keys = [],
                  start_keys = [],
                  stop_keys = [],
+                 valid_keys = None,
                  input_device = "keyboard"):
         """
         Setting Data
@@ -481,7 +495,7 @@ class Experiment:
         """
         self.intermediater = Intermediater()
 
-        self.event_manager = Event_manager()
+        self.event_manager = Event_manager(valid_keys=valid_keys)
         self.interface = Input_interface_manager(start_keys=start_keys,
                                                  stop_keys=stop_keys,
                                                  intermediater=self.intermediater,
@@ -555,9 +569,12 @@ class Experiment:
     def wait_blocks(self, blocks, iteration):
         def end():
             if iteration+1 < len(blocks):
+                # 기존꺼 멈추고
+                self.interface.set_is_stop_monitoring(True)
+                # 새로 실행
                 self.wait_blocks(blocks, iteration+1)
             else:
-                self.display_manager.show_stimulus(Text_st_unit("End", showing_time=20))
+                self.display_manager.show_stimulus(Text_st_unit("", showing_time=20))
 
         self.wait_pkg(pkgs=blocks[iteration], iteration=iteration, addition_end_proc=end)
 
