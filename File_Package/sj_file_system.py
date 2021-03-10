@@ -93,9 +93,6 @@ class CsvManager:
         self.file_name = file_name
         self.file_path = os.path.join(self.dir_path, self.file_name + ".csv")
 
-        if os.path.isfile(self.file_path):
-            os.remove(self.file_path)
-
     def read_csv_from_pandas(self):
         return pd.read_csv(self.file_path)
 
