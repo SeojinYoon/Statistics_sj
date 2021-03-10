@@ -14,7 +14,7 @@ from Preprocessing_Package.sj_util import get_random_sample_in_codes
 from Preprocessing_Package.sj_shuffle import shuffle_list
 import itertools
 from Higher_function.sj_higher_function import recursive_map
-# End session showing time 1초로
+
 """
 Data Setting
 """
@@ -106,13 +106,13 @@ for t in range(0,4):
 data_dir_path = source_path
 participant_name = "seojin"
 
-exp = Experiment(monitor_size=[400,400],
-                 is_full_screen = False,
+exp = Experiment(monitor_size=[1000,1000],
+                 is_full_screen = True,
                  data_dir_path = data_dir_path,
                  participant_name = participant_name,
                  ready_keys=["r"],
                  start_keys=["s"],
-                 stop_keys=["q"],
+                 stop_keys=["p"],
                  valid_keys=["4", "3", "2", "1"],
                  input_device="keyboard")
 
