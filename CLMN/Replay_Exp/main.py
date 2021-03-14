@@ -104,7 +104,7 @@ for t in range(0,4):
 # 나중에 사용할때 이것만 고쳐주면 됨
 
 data_dir_path = source_path
-participant_name = "seojin"
+participant_name = "eunha"
 
 exp = Experiment(monitor_size=[1000,1000],
                  is_full_screen = True,

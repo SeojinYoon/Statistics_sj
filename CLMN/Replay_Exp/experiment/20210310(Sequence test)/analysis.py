@@ -108,13 +108,44 @@ mapped_d = multi_response_only(mapped_d)
 mapped_d = time_difference(mapped_d)
 avg_time_difference_per_sess = avg_time_difference_per_sessions(mapped_d)
 
-# Time difference
+# Avg Time difference
 F_Visualize.draw_line_graph(
     data_sets = [pd.Series(avg_time_difference_per_sess)],
     xlabel = "Session_index",
     ylabel= "Average Difference(R_t - S_t)",
     title = "seojin_sequence_replay"
 )
+
+# Stimulus를 그룹화하여 플롯팅
+time_difference_per_session = []
+session_index = 0
+for session_index in range(0, len(stimuluses)):
+    for name, group in mapped_d[session_index].groupby("Stimulus"):
+        time_difference = group["Time Difference"]
+        time_difference_per_session.append(list(map(lambda x: (session_index, name, x), time_difference)))
+
+import matplotlib.pyplot as plt
+c = 1
+for i in range(0, len(time_difference_per_session)):
+    data = time_difference_per_session[i]
+    session_index = list(map(lambda x: x[0], data))
+    response_data_group = list(map(lambda x: x[2], data))
+    if i % 2 == 0: # 시퀀스 구분
+        # 1-4-2-3-1
+        plt.scatter(session_index, response_data_group, c="red", s = 10)
+    else:
+        # 4-3-2-1-4
+        plt.scatter(session_index, response_data_group, c="blue", s= 10)
+plt.title("seojin_replay_righthand")
+plt.xlabel("Session index")
+plt.ylabel("Reaction time")
+plt.legend(["1-4-2-3-1","4-3-2-1-4"])
+
+
+
+
+
+
 
 # Accuracy
 sessions_indexes = list(range(0, len(mapped_d)))
@@ -123,7 +154,7 @@ F_Visualize.draw_bar_plot(
     y_list= pd.Series(accuracy(mapped_d)),
     xlabel = "Session_index",
     ylabel= "accuracy ratio",
-    title = "seojin_sequence_replay"
+    title = "seojin_sequence_replay_right"
 )
 
 # Left Hand
@@ -141,7 +172,7 @@ stimuluses[-1] = stimuluses[-1][:-1] # remove not necessary data
 mapped_d = mapping_data(stimuluses, responses)
 mapped_d = multi_response_only(mapped_d)
 mapped_d = time_difference(mapped_d)
-avg_time_difference_per_sess = avg_time_difference_per_sessions(mapped_d)
+avg_time_difference_per_sess_left = avg_time_difference_per_sessions(mapped_d)
 
 sessions_indexes = list(range(0, len(mapped_d)))
 F_Visualize.draw_line_graph(
@@ -149,6 +180,15 @@ F_Visualize.draw_line_graph(
     xlabel = "Session_index",
     ylabel= "Average Difference(R_t - S_t)",
     title = "seojin_sequence_replay"
+)
+
+# Avg Time difference
+F_Visualize.draw_line_graph(
+    data_sets = [pd.Series(avg_time_difference_per_sess), pd.Series(avg_time_difference_per_sess_left)],
+    xlabel = "Session_index",
+    ylabel= "Average Difference(R_t - S_t)",
+    title = "seojin_sequence_replay",
+    legend=["R","L"]
 )
 
 """
