@@ -6,6 +6,9 @@ from File_Package.sj_file_system import CsvManager
 import time
 
 class Direct_fire_timer:
+    """
+    This class is made for call certain procedure when the time is reached by timer or when need to call directly
+    """
     def start(self, seconds, proc):
         self.proc = proc
         self.timer = Timer(seconds, proc)
@@ -18,54 +21,23 @@ class Direct_fire_timer:
         self.proc()
 
 class St_Unit:
+    # It is abstract type of Stimulus
     def __init__(self, showing_time):
         self.showing_time = showing_time
 
 class Image_st_unit(St_Unit):
+    # It shows image stimulus
     def __init__(self, image_path, showing_time = 0.0):
         super().__init__(showing_time)
         self.image_path = image_path
 
 class Text_st_unit(St_Unit):
+    # It shows text stimulus
     def __init__(self, text, color=[0,0,0], showing_time = 0.0, text_height=0.3):
         super().__init__(showing_time)
         self.text = text
         self.color = color
         self.text_height = text_height
-
-class ISI_st_unit(St_Unit):
-    def __init__(self, text, color=[0,0,0], showing_time = 0.0, text_height=0.3):
-        super().__init__(showing_time)
-        self.text = text
-        self.color = color
-        self.text_height = text_height
-
-class BundleInterval_st_unit(St_Unit):
-    def __init__(self, text, color=[0,0,0], showing_time = 0.0, text_height=0.3):
-        super().__init__(showing_time)
-        self.text = text
-        self.color = color
-        self.text_height = text_height
-
-class St_bundle:
-    def __init__(self, units):
-        self.units = units
-        self.ISI_units = []
-
-class Text_st_bundle(St_bundle):
-    def __init__(self, units, ISI_times):
-        """
-        :param units: list of Text_st_unit
-        :param ISI_avg_time: average time(Secs) for ISI. if this value is 3 the ISI average time is 3sec per bundle
-        """
-        # units: list of Text_st_unit
-        self.units = units
-        self.ISI_times = ISI_times + [0]
-
-        ISIs_stimulus = []
-        for i in range(0, len(units)):
-            ISIs_stimulus.append(ISI_st_unit("+", showing_time=self.ISI_times[i]))
-        self.ISI_units = ISIs_stimulus
 
 class Sequence_st_text_unit(St_Unit):
     #: ex) 3-2-1-4-3
@@ -87,13 +59,54 @@ class Sequence_st_text_unit(St_Unit):
             else:
                 raise Exception("Type Error!")
 
+class ISI_st_unit(St_Unit):
+    # It shows ISI stimulus
+    def __init__(self, text, color=[0,0,0], showing_time = 0.0, text_height=0.3):
+        super().__init__(showing_time)
+        self.text = text
+        self.color = color
+        self.text_height = text_height
+
+class BundleInterval_st_unit(St_Unit):
+    # It shows bundle interval stimulus
+    def __init__(self, text, color=[0,0,0], showing_time = 0.0, text_height=0.3):
+        super().__init__(showing_time)
+        self.text = text
+        self.color = color
+        self.text_height = text_height
+
+class St_bundle:
+    # What is bundle?: bundle means that a box consists of many pairs of stimulus and rest state
+    # It consists of many unit stimuluses
+    def __init__(self, units):
+        self.units = units
+        self.ISI_units = []
+
+class Text_st_bundle(St_bundle):
+    # It consists of many Text stimulus
+    def __init__(self, units, ISI_times):
+        """
+        :param units: list of Text_st_unit
+        :param ISI_avg_time: average time(Secs) for ISI. if this value is 3 the ISI average time is 3sec per bundle
+        """
+        # units: list of Text_st_unit
+        self.units = units
+        self.ISI_times = ISI_times + [0]
+
+        ISIs_stimulus = []
+        for i in range(0, len(units)):
+            ISIs_stimulus.append(ISI_st_unit("+", showing_time=self.ISI_times[i]))
+        self.ISI_units = ISIs_stimulus
+
 class Sequence_st_bundle(St_bundle):
+    # It consists of many Sequence stimulus
     def __init__(self, sequences, ISI_interval):
         super().__init__(sequences)
         for i in range(0, len(sequences)):
             self.ISI_units.append(ISI_st_unit("+", showing_time=ISI_interval))
 
-class St_Pakcage:
+class St_Package:
+    # It consists of many bundles
     def __init__(self, bundles, bundle_intervals, interval_text):
         self.bundles = bundles
         self.bundle_intervals = bundle_intervals
@@ -101,7 +114,8 @@ class St_Pakcage:
         interval_units = []
         for i in range(0, len(bundles)):
             remain = i % len(bundle_intervals)
-            interval_units.append(BundleInterval_st_unit(interval_text, showing_time=bundle_intervals[remain]))
+            if bundle_intervals[remain] != 0:
+                interval_units.append(BundleInterval_st_unit(interval_text, showing_time=bundle_intervals[remain]))
         self.interval_units = interval_units
 
 class Intermediater:
@@ -284,14 +298,22 @@ class Psy_display_manager:
                                  end_process=end_process)
 
     def show_package(self, pkg, end_process = None):
-        if isinstance(pkg, St_Pakcage):
+        """
+        :param pkg: St_Package
+        :param end_process: function, it called when last stimulus is ended
+        """
+        if isinstance(pkg, St_Package):
             self.show_stimuluses(stimuluses=self.make_stimulus_in_pkg(pkg),
                                  end_process=end_process)
 
     def show_packages(self, pkgs, end_process = None):
+        """
+        :param pkgs: list of St_Package
+        :param end_process: function, it called when last stimulus of last package is ended
+        """
         stimuluses = []
         for pkg in pkgs:
-            if isinstance(pkg, St_Pakcage):
+            if isinstance(pkg, St_Package):
                 stimuluses += self.make_stimulus_in_pkg(pkg)
             elif isinstance(pkg, Text_st_unit):
                 stimuluses += [pkg]
@@ -299,9 +321,16 @@ class Psy_display_manager:
                              end_process=end_process)
 
     def show_packages_with_step_counting(self, pkgs, end_process = None):
+        """
+        The difference about show_packages is that this function calculates stimulus's step for matching with response
+        (when the pair of stimulus-response is ("ABC", "1") then we have to know when the stimulus and response is occured, so I checked the event by step)
+
+        :param pkgs: list of St_Package
+        :param end_process: function, it called when last stimulus of last package is ended
+        """
         stimuluses = []
         for pkg in pkgs:
-            if isinstance(pkg, St_Pakcage):
+            if isinstance(pkg, St_Package):
                 stimuluses += self.make_stimulus_in_pkg(pkg)
             elif isinstance(pkg, Text_st_unit):
                 stimuluses += [pkg]
@@ -310,6 +339,11 @@ class Psy_display_manager:
                              end_process=end_process)
 
     def make_stimulus_in_text_bundle(self, bundle):
+        """
+        This function unpacks bundle to make corresponding stimuluses
+
+        :param bundle: St_bundle
+        """
         stimuluses = []
         if isinstance(bundle, Text_st_bundle):
             for j in range(0, len(bundle.units)):
@@ -319,6 +353,11 @@ class Psy_display_manager:
         return stimuluses
 
     def make_stimulus_in_seq_bundle(self, bundle):
+        """
+        This function unpacks sequence bundle to make corresponding stimuluses
+
+        :param bundle: Sequence_st_bundle
+        """
         stimuluses = []
         for k in range(0, len(bundle.units)):
             stimuluses.append(bundle.units[k])
@@ -327,6 +366,11 @@ class Psy_display_manager:
         return stimuluses
 
     def make_stimulus_in_pkg(self, pkg):
+        """
+        This function unpacks Package to make corresponding stimuluses
+
+        :param bundle: St_Package
+        """
         stimuluses = []
         for i in range(0, len(pkg.bundles)):
             bundle = pkg.bundles[i]
@@ -334,9 +378,19 @@ class Psy_display_manager:
                 stimuluses += self.make_stimulus_in_text_bundle(bundle)
             elif isinstance(bundle, Sequence_st_bundle):
                 stimuluses += self.make_stimulus_in_seq_bundle(bundle)
-
-            if i != len(pkg.bundles)-1: # 맨 마지막 번들 뒤에는 번들 인터벌 넣어주지 않음
-                stimuluses.append(pkg.interval_units[i])
+            """
+            elif isinstance(bundle, list):
+                for j in range(0, len(bundle)):
+                    if isinstance(bundle[j], Text_st_bundle):
+                        stimuluses += self.make_stimulus_in_text_bundle(bundle)
+                    elif isinstance(bundle, Sequence_st_bundle):
+                        stimuluses += self.make_stimulus_in_seq_bundle(bundle)
+                    
+                stimuluses += self.make_stimulus_in_seq_bundle(bundle)
+            """
+            if len(pkg.interval_units) > 0:
+                if i != len(pkg.bundles)-1: # 맨 마지막 번들 뒤에는 번들 인터벌 넣어주지 않음
+                    stimuluses.append(pkg.interval_units[i])
         return stimuluses
 
     def close_window(self):

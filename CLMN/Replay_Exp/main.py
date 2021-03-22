@@ -9,7 +9,7 @@ import os
 os.chdir(source_path)
 
 from Psychopy_Package.Psychopy_util import Text_st_bundle, Text_st_unit, \
-    Sequence_st_text_unit, Sequence_st_bundle, St_Pakcage, Experiment
+    Sequence_st_text_unit, Sequence_st_bundle, St_Package, Experiment
 from Preprocessing_Package.sj_util import get_random_sample_in_codes
 from Preprocessing_Package.sj_shuffle import shuffle_list
 import itertools
@@ -71,7 +71,7 @@ def make_blocks(u_sets, seq_set_list):
             combination_unit = (u_sets[i], seq_list[i])
             combination_units.append(combination_unit)
 
-        datas = list(map(lambda x: St_Pakcage(bundles=[x[0], x[1]],
+        datas = list(map(lambda x: St_Package(bundles=[x[0], x[1]],
                                       bundle_intervals=time_interval_between_bundles,
                                       interval_text="..."), combination_units))
 
@@ -86,7 +86,7 @@ def make_blocks(u_sets, seq_set_list):
             combination_unit = (u_sets[i+sequence_length], seq_list[i])
             combination_units.append(combination_unit)
 
-        datas = list(map(lambda x: St_Pakcage(bundles=[x[0], x[1]],
+        datas = list(map(lambda x: St_Package(bundles=[x[0], x[1]],
                                                     bundle_intervals=time_interval_between_bundles,
                                                     interval_text="..."), combination_units))
         # datas.append(Text_st_unit("End session", showing_time=10))

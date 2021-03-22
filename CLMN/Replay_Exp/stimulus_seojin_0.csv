@@ -1,0 +1,46 @@
+Step,Event_Type,Stimulus,display_seconds,start_seconds
+-1,single text,,0.0,0.06105184555053711
+-1,single text,0 trial Ready,0.0,7.199446678161621
+-1,single text,,0.0,0.07852578163146973
+-1,single text,,0.0,0.04681205749511719
+-1,single text,0 trial Ready,0.0,6.440284013748169
+-1,single text,,0.0,0.015280961990356445
+-1,single text,0 trial Ready,0.0,2.4279348850250244
+0,Bundle Interval,...,0,0.027028799057006836
+1,Bundle Interval,...,0,0.042430877685546875
+2,Bundle Interval,...,0,0.059262990951538086
+3,Bundle Interval,...,0,0.0756988525390625
+4,Bundle Interval,...,0,0.09260988235473633
+-1,End,End,0,0.09476876258850098
+-1,single text,,0.0,2.428415060043335
+-1,single text,0 trial Ready,0.0,10.24937915802002
+0,Bundle Interval,...,0,0.017683982849121094
+1,Bundle Interval,...,0,0.03330707550048828
+2,Bundle Interval,...,0,0.05044198036193848
+3,Bundle Interval,...,0,0.06714797019958496
+4,Bundle Interval,...,0,0.08375287055969238
+5,Bundle Interval,...,0,0.10051298141479492
+6,Bundle Interval,...,0,0.11712884902954102
+7,Bundle Interval,...,0,0.13732385635375977
+8,Bundle Interval,...,0,0.153670072555542
+9,Bundle Interval,...,0,0.17038512229919434
+10,Bundle Interval,...,0,0.18697595596313477
+11,Bundle Interval,...,0,0.20380401611328125
+12,Bundle Interval,...,0,0.22472596168518066
+13,Bundle Interval,...,0,0.24352598190307617
+14,Bundle Interval,...,0,0.2569119930267334
+15,Bundle Interval,...,0,0.2761259078979492
+16,Bundle Interval,...,0,0.29250502586364746
+17,Bundle Interval,...,0,0.30642080307006836
+18,Bundle Interval,...,0,0.3217048645019531
+19,Bundle Interval,...,0,0.33666491508483887
+20,Bundle Interval,...,0,0.3532881736755371
+21,Bundle Interval,...,0,0.36982107162475586
+22,Bundle Interval,...,0,0.38648200035095215
+-1,End,End,0,0.3872029781341553
+-1,single text,,0.0,0.03125309944152832
+-1,single text,0 trial Ready,0.0,2.1029062271118164
+-1,single text,,0.0,0.044983863830566406
+-1,single text,0 trial Ready,0.0,3.9355881214141846
+-1,single text,,0.0,0.06404924392700195
+-1,single text,0 trial Ready,0.0,1.146773099899292

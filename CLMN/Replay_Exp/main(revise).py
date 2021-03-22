@@ -12,6 +12,14 @@
 - 런 횟수 8개
 
 수정 blue print
+- 휴식 시간 20초
+- 시퀀스 5초
+- 1block - 시퀀스 48개(12분)
+
+- block - 24개의 set 존재
+
+set1: sequence 1 - sequence 2
+set2: sequence 2 - sequence 1
 
 """
 
@@ -26,36 +34,58 @@ source_path = "/Users/yoonseojin/Statistics_sj/CLMN/Replay_Exp"
 import os
 os.chdir(source_path)
 
-from Psychopy_Package.Psychopy_util import Text_st_bundle, Text_st_unit, \
-    Sequence_st_text_unit, Sequence_st_bundle, St_Pakcage, Experiment
+from Psychopy_Package.Psychopy_util import Sequence_st_text_unit, Sequence_st_bundle, St_Package, Experiment
 from Preprocessing_Package.sj_util import get_random_sample_in_codes
 from Preprocessing_Package.sj_shuffle import shuffle_list
-import itertools
-from Higher_function.sj_higher_function import recursive_map
 
 """
 Data Setting
 """
-# making units
 # Making sequences
-seq1 = Sequence_st_bundle([Sequence_st_text_unit(["4", "3", "2", "1", "4"], showing_time=15, color=[0,0,0], text_height=0.1)],
-                          ISI_interval= 21)
-seq2 = Sequence_st_bundle([Sequence_st_text_unit(["1", "4", "2", "3", "1"], showing_time=15, color=[1,1,1], text_height=0.1)],
-                          ISI_interval= 21)
+sequence1 = ["4", "3", "2", "1", "4"]
+sequence2 = ["1", "4", "2", "3", "1"]
+sequence_showing_time = 5
 
-samples = get_random_sample_in_codes(6, [1,2], [0.5,0.5])
-seq_set_list = list(map(lambda x: [seq2, seq1] if x == 1 else [seq1, seq2], samples))
+sequence1_color = [0,0,0]
+sequence2_color = [1,1,1]
 
-shuffle_list(seq_set_list)
+sequence_rest_time = 20
+
+seq_bundle1 = Sequence_st_bundle([
+    Sequence_st_text_unit(sequence1, showing_time=sequence_showing_time, color=sequence1_color, text_height=0.1),
+    Sequence_st_text_unit(sequence2, showing_time=sequence_showing_time, color=sequence2_color, text_height=0.1)
+    ],
+    ISI_interval= sequence_rest_time)
+
+seq_bundle2 = Sequence_st_bundle([
+    Sequence_st_text_unit(sequence2, showing_time=sequence_showing_time, color=sequence2_color, text_height=0.1),
+    Sequence_st_text_unit(sequence1, showing_time=sequence_showing_time, color=sequence1_color, text_height=0.1)
+    ],
+    ISI_interval= sequence_rest_time)
+
+samples_sets = get_random_sample_in_codes(24, [1,2], [0.5,0.5])
+seq_set_list = list(map(lambda x: [seq_bundle1, seq_bundle2] if x == 1 else [seq_bundle2, seq_bundle1], samples_sets))
+
+# Make blocks
+def make_blocks(seq_set_list, run_count = 8):
+    blocks = []
+
+    for i in range(0, run_count):
+        shuffle_list(seq_set_list)
+        blocks.append(seq_set_list)
+
+    datas = list(map(lambda x: [St_Package(bundles=x, bundle_intervals=[0], interval_text="...")], blocks))
+
+    return datas
+blocks = make_blocks(seq_set_list)
 
 
-# 나중에 사용할때 이것만 고쳐주면 됨
-
+# Experiments
 data_dir_path = source_path
-participant_name = "eunha"
+participant_name = "seojin"
 
-exp = Experiment(monitor_size=[1000,1000],
-                 is_full_screen = True,
+exp = Experiment(monitor_size=[400,400],
+                 is_full_screen = False,
                  data_dir_path = data_dir_path,
                  participant_name = participant_name,
                  ready_keys=["r"],
@@ -66,8 +96,3 @@ exp = Experiment(monitor_size=[1000,1000],
 
 exp.wait_blocks(blocks=blocks,
                 iteration=0)
-
-"""
-block_index = 6
-exp.wait_pkg(pkgs=blocks[block_index], iteration = block_index)
-"""
