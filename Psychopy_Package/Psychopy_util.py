@@ -16,12 +16,7 @@ Note:
         -0.5
         1
 
-    x axis
-        -1
-        -0.5
-        0(center)
-        0.5
-        1
+    x axis: -1 -0.5 0(center) 0.5 1
 
 ★ psychopy align
 psychopy's absolute positioning is that (0.0) is center
@@ -310,8 +305,8 @@ class Psy_display_manager:
                                                      bold=True,
                                                      colorSpace="rgb",
                                                      color=stimulus.color,
-                                                     pos=(0.8, 0.8),
-                                                     alignHoriz="right"
+                                                     pos=(0, -0.3),
+                                                     alignHoriz="center"
                                                      )
                 count_correct.draw()
 
@@ -662,8 +657,6 @@ class Experiment:
             log_response(input)
 
             if isinstance(current_stimulus, Sequence_st_text_unit):
-                print("ABDADSF")
-
                 if current_stimulus.is_count_correct:
                     count_coding = current_stimulus.unit_correct_count
                     # show coded stimuli

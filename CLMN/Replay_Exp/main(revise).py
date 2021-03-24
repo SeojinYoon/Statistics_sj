@@ -7,7 +7,6 @@
 
 수정해야 할 사항
 - 시퀀스가 학습되었는지에 대한 보상 - 별로 표현(오른쪽 위)
-- 맞으면 시퀀스가 변경되어 *로 표시됨
 - 버튼 입력 들어오면 포즈 같은거 해야함(누르고 있으면 계속 들어옴)
 - 런 횟수 8개
 
@@ -41,16 +40,16 @@ from Preprocessing_Package.sj_util import get_random_sample_in_codes
 Data Setting
 """
 # Making sequences
-sequence1 = ["4", "3", "2", "1", "4"]
+sequence1 = ["4", "1", "3", "2", "4"]
 sequence2 = ["1", "4", "2", "3", "1"]
-sequence_showing_time = 5
+sequence_showing_time = 6
 
 sequence1_color = [0,0,0]
 sequence2_color = [1,1,1]
 
 sequence_rest_time = 20
 
-sequence_bundle_count_per_run = 24
+sequence_bundle_count_per_run = 12
 
 seq_bundle1 = Sequence_st_bundle([
     Sequence_st_text_unit(sequence1, showing_time=sequence_showing_time, color=sequence1_color, text_height=0.1, is_count_correct=True),
