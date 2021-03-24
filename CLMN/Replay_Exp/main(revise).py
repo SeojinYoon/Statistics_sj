@@ -36,7 +36,6 @@ os.chdir(source_path)
 
 from Psychopy_Package.Psychopy_util import Sequence_st_text_unit, Sequence_st_bundle, St_Package, Experiment
 from Preprocessing_Package.sj_util import get_random_sample_in_codes
-from Preprocessing_Package.sj_shuffle import shuffle_list
 
 """
 Data Setting
@@ -51,34 +50,37 @@ sequence2_color = [1,1,1]
 
 sequence_rest_time = 20
 
+sequence_bundle_count_per_run = 24
+
 seq_bundle1 = Sequence_st_bundle([
-    Sequence_st_text_unit(sequence1, showing_time=sequence_showing_time, color=sequence1_color, text_height=0.1),
-    Sequence_st_text_unit(sequence2, showing_time=sequence_showing_time, color=sequence2_color, text_height=0.1)
+    Sequence_st_text_unit(sequence1, showing_time=sequence_showing_time, color=sequence1_color, text_height=0.1, is_count_correct=True),
+    Sequence_st_text_unit(sequence2, showing_time=sequence_showing_time, color=sequence2_color, text_height=0.1, is_count_correct=True)
     ],
     ISI_interval= sequence_rest_time)
 
 seq_bundle2 = Sequence_st_bundle([
-    Sequence_st_text_unit(sequence2, showing_time=sequence_showing_time, color=sequence2_color, text_height=0.1),
-    Sequence_st_text_unit(sequence1, showing_time=sequence_showing_time, color=sequence1_color, text_height=0.1)
+    Sequence_st_text_unit(sequence2, showing_time=sequence_showing_time, color=sequence2_color, text_height=0.1, is_count_correct=True),
+    Sequence_st_text_unit(sequence1, showing_time=sequence_showing_time, color=sequence1_color, text_height=0.1, is_count_correct=True)
     ],
     ISI_interval= sequence_rest_time)
 
-samples_sets = get_random_sample_in_codes(24, [1,2], [0.5,0.5])
-seq_set_list = list(map(lambda x: [seq_bundle1, seq_bundle2] if x == 1 else [seq_bundle2, seq_bundle1], samples_sets))
-
 # Make blocks
-def make_blocks(seq_set_list, run_count = 8):
-    blocks = []
-
+def make_blocks(seq_bundle1, seq_bundle2, run_count = 8):
+    shuffles = []
     for i in range(0, run_count):
-        shuffle_list(seq_set_list)
-        blocks.append(seq_set_list)
+        samples_sets = get_random_sample_in_codes(sample_count=sequence_bundle_count_per_run,
+                                                  codes=[1, 2],
+                                                  ratio=[0.5, 0.5])
+        seq_set_list = list(map(lambda x: seq_bundle1 if x == 1 else seq_bundle2, samples_sets))
 
-    datas = list(map(lambda x: [St_Package(bundles=x, bundle_intervals=[0], interval_text="...")], blocks))
+        shuffles.append(seq_set_list)
 
-    return datas
-blocks = make_blocks(seq_set_list)
+    blocks = []
+    for s in shuffles:
+        blocks.append([St_Package(bundles=s, bundle_intervals=[0], interval_text="Empty")])
+    return blocks
 
+blocks = make_blocks(seq_bundle1, seq_bundle2, run_count=8)
 
 # Experiments
 data_dir_path = source_path
@@ -94,5 +96,5 @@ exp = Experiment(monitor_size=[400,400],
                  valid_keys=["4", "3", "2", "1"],
                  input_device="keyboard")
 
-exp.wait_blocks(blocks=blocks,
+exp.wait_blocks(blocks=blocks[0:2],
                 iteration=0)

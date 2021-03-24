@@ -5,6 +5,33 @@ import queue
 from File_Package.sj_file_system import CsvManager
 import time
 
+"""
+Note: 
+★ psychopy position
+
+    y axis
+        1
+        0.5
+        0(center)
+        -0.5
+        1
+
+    x axis
+        -1
+        -0.5
+        0(center)
+        0.5
+        1
+
+★ psychopy align
+psychopy's absolute positioning is that (0.0) is center
+psychopy's object positioning is depending on object's anchor
+
+when a object's position is (0,0) then psychopy match the object's anchor and psychopy's absolution position
+if the anchor is left(left boundar), the anchor point is matched to center position
+so, the left side point of box's position is 0
+
+"""
 class Direct_fire_timer:
     """
     This class is made for call certain procedure when the time is reached by timer or when need to call directly
@@ -41,10 +68,22 @@ class Text_st_unit(St_Unit):
 
 class Sequence_st_text_unit(St_Unit):
     #: ex) 3-2-1-4-3
-    def __init__(self, text_units, showing_time = 0.0, color = [1,1,1], text_height=0.3):
+    def __init__(self,
+                 text_units,
+                 showing_time = 0.0,
+                 color = [1,1,1],
+                 text_height=0.3,
+                 is_count_correct=False,
+                 unit_correct_count = 0,
+                 correct_count = 0):
+        self.text_units = text_units
         self.showing_time = showing_time
         self.color = color
-        self.text_height =text_height
+        self.text_height = text_height
+        self.is_count_correct = is_count_correct
+        if self.is_count_correct:
+            self.unit_correct_count = unit_correct_count # increase the count when single text_unit is matched correctly
+            self.correct_count = correct_count # increase the count when full sequence is matched correctly
 
         type_check = [isinstance(t_u, Text_st_unit) for t_u in text_units]
         if sum(type_check) == len(text_units):
@@ -106,6 +145,7 @@ class Sequence_st_bundle(St_bundle):
             self.ISI_units.append(ISI_st_unit("+", showing_time=ISI_interval))
 
 class St_Package:
+    # set of bundles
     # It consists of many bundles
     def __init__(self, bundles, bundle_intervals, interval_text):
         self.bundles = bundles
@@ -121,6 +161,11 @@ class St_Package:
 class Intermediater:
     def __init__(self):
         print("Init Intermeidater")
+
+        # essential property (must need to be set)
+        self.input_interface_manager = None
+        self.display_manager = None
+        self.event_manager = None
 
     def set_input_interface_manager(self, input_interface_manager):
         self.input_interface_manager = input_interface_manager
@@ -145,7 +190,7 @@ class Intermediater:
         self.event_manager.set_is_activate_multiple_input(False, 0)
 
     def listen_input(self, input):
-        self.event_manager.listen_input(input)
+        self.event_manager.listen_input(input, self.display_manager.current_showing_stimlus)
 
     def set_valid_keys(self, keys):
         self.valid_keys = keys
@@ -161,10 +206,10 @@ class Psy_display_manager:
     def __init__(self, intermediater):
         self.intermediater = intermediater
         self.timer = Direct_fire_timer()
-        self.current_step = -1
-        self.current_showing_stimlus = None
-        self.total_stimuluses = None
-        self.stimulus_showing_handler = None
+        self.current_step = -1 # It denotes that current step of stimulus
+        self.current_showing_stimlus = None # currently showed stimulus in display
+        self.total_stimuluses = None # It denotes that total stimulus needs to be showed
+        self.stimulus_showing_handler = None # It is called when stimulus is showed
 
     def open_window(self, size, color = [-1,-1,-1], is_full_screen = False):
         print("open window")
@@ -194,6 +239,7 @@ class Psy_display_manager:
 
     def show_stimulus(self, stimulus):
         self.current_showing_stimlus = stimulus
+
         if isinstance(stimulus, Image_st_unit):
             self.intermediater.one_input_only()
 
@@ -228,29 +274,63 @@ class Psy_display_manager:
         elif isinstance(stimulus, Text_st_unit):
             self.intermediater.one_input_only()
             text = self.visual.TextStim(win=self.win,
-                                   text=stimulus.text,
-                                   height=stimulus.text_height,
-                                   bold=True,
-                                   colorSpace="rgb",
-                                   color=stimulus.color)
-            text.draw()
-            self.win.flip()
-            print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.text, stimulus.showing_time))
-            if self.stimulus_showing_handler != None:
-                self.stimulus_showing_handler("single text", stimulus.text, stimulus.showing_time)
-        elif isinstance(stimulus, Sequence_st_text_unit):
-            self.intermediater.one_multi_input_both(len(stimulus.texts))
-            text = self.visual.TextStim(win=self.win,
-                                        text=" - ".join(stimulus.texts),
+                                        text=stimulus.text,
                                         height=stimulus.text_height,
                                         bold=True,
                                         colorSpace="rgb",
                                         color=stimulus.color)
             text.draw()
             self.win.flip()
-            print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.texts, stimulus.showing_time))
+            print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.text, stimulus.showing_time))
             if self.stimulus_showing_handler != None:
-                self.stimulus_showing_handler("seq texts", stimulus.texts, stimulus.showing_time)
+                self.stimulus_showing_handler("single text", stimulus.text, stimulus.showing_time)
+        elif isinstance(stimulus, Sequence_st_text_unit):
+            # self.intermediater.one_multi_input_both(len(stimulus.texts))
+            self.intermediater.one_input_only()
+
+            if stimulus.is_count_correct:
+                show_seq = []
+                for i in range(0, len(stimulus.texts)):
+                    if i < stimulus.unit_correct_count:
+                        show_seq += "*"
+                    else:
+                        show_seq += stimulus.texts[i]
+
+                text = self.visual.TextStim(win=self.win,
+                                            text=" - ".join(show_seq),
+                                            height=stimulus.text_height,
+                                            bold=True,
+                                            colorSpace="rgb",
+                                            color=stimulus.color)
+                text.draw()
+
+                count_correct = self.visual.TextStim(win=self.win,
+                                                     text="*" * stimulus.correct_count,
+                                                     height=0.1,
+                                                     bold=True,
+                                                     colorSpace="rgb",
+                                                     color=stimulus.color,
+                                                     pos=(0.8, 0.8),
+                                                     alignHoriz="right"
+                                                     )
+                count_correct.draw()
+
+                if self.stimulus_showing_handler != None:
+                    self.stimulus_showing_handler("seq texts", show_seq, stimulus.showing_time)
+            else:
+                text = self.visual.TextStim(win=self.win,
+                                            text=" - ".join(stimulus.texts),
+                                            height=stimulus.text_height,
+                                            bold=True,
+                                            colorSpace="rgb",
+                                            color=stimulus.color)
+                text.draw()
+                if self.stimulus_showing_handler != None:
+                    self.stimulus_showing_handler("seq texts", stimulus.texts, stimulus.showing_time)
+
+
+            self.win.flip()
+            print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.texts, stimulus.showing_time))
 
     def show_stimuluses_with_step_counting(self, stimuluses, end_process = None):
         self.total_stimuluses = stimuluses
@@ -338,6 +418,14 @@ class Psy_display_manager:
         self.show_stimuluses(stimuluses=stimuluses,
                              end_process=end_process)
 
+    def show_stimulus_with_exception(self, stimulus):
+        """
+        This function is used to change display while current stimulus information is preserved (Non changing current_showing_stimlus)
+
+        but, Do not use this function frequently, because this function causes confusing of source
+        """
+        self.visual_stimuli(stimulus)
+
     def make_stimulus_in_text_bundle(self, bundle):
         """
         This function unpacks bundle to make corresponding stimuluses
@@ -378,16 +466,7 @@ class Psy_display_manager:
                 stimuluses += self.make_stimulus_in_text_bundle(bundle)
             elif isinstance(bundle, Sequence_st_bundle):
                 stimuluses += self.make_stimulus_in_seq_bundle(bundle)
-            """
-            elif isinstance(bundle, list):
-                for j in range(0, len(bundle)):
-                    if isinstance(bundle[j], Text_st_bundle):
-                        stimuluses += self.make_stimulus_in_text_bundle(bundle)
-                    elif isinstance(bundle, Sequence_st_bundle):
-                        stimuluses += self.make_stimulus_in_seq_bundle(bundle)
-                    
-                stimuluses += self.make_stimulus_in_seq_bundle(bundle)
-            """
+
             if len(pkg.interval_units) > 0:
                 if i != len(pkg.bundles)-1: # 맨 마지막 번들 뒤에는 번들 인터벌 넣어주지 않음
                     stimuluses.append(pkg.interval_units[i])
@@ -491,20 +570,20 @@ class Event_manager:
         self.target_input_count = 0
         self.valid_keys = valid_keys
 
-    def listen_input(self, input):
+    def listen_input(self, input, current_stimulus):
         if self.is_activate == True and (input in self.valid_keys):
             self.input_buffer.append(input)
-            self.listen_one_input(input)
-            self.listen_multiple_input(self.input_buffer)
+            self.listen_one_input(input, current_stimulus)
+            self.listen_multiple_input(self.input_buffer , current_stimulus)
 
-    def listen_one_input(self, input):
+    def listen_one_input(self, input, current_stimulus):
         if self.is_activate_one_input == True:
-            self.single_input_handler(input)
+            self.single_input_handler(input, current_stimulus)
 
-    def listen_multiple_input(self, inputs):
+    def listen_multiple_input(self, inputs, current_stimulus):
         if self.is_activate_multiple_input == True:
             if len(self.input_buffer) == self.target_input_count:
-                self.multiple_input_handler(inputs)
+                self.multiple_input_handler(inputs, current_stimulus)
                 self.input_buffer = []
         else:
             self.input_buffer = [] # if not use, clean input buffer
@@ -578,25 +657,50 @@ class Experiment:
             # ["Step", "Response", "seconds"]
             self.response_csv_manager.write_row([self.display_manager.current_step, response, time.time() - self.start_time])
 
-        def single_input_handler(input):
+        def single_input_handler(input, current_stimulus):
             print("proc single input", input)
             log_response(input)
 
-        def multiple_input_handler(inputs):
+            if isinstance(current_stimulus, Sequence_st_text_unit):
+                print("ABDADSF")
+
+                if current_stimulus.is_count_correct:
+                    count_coding = current_stimulus.unit_correct_count
+                    # show coded stimuli
+                    if current_stimulus.texts[count_coding] == input:
+                        if count_coding < len(current_stimulus.texts) - 1:
+                            unit = Sequence_st_text_unit(text_units=current_stimulus.text_units,
+                                                        color=current_stimulus.color,
+                                                        text_height=current_stimulus.text_height,
+                                                        is_count_correct=True,
+                                                        unit_correct_count=count_coding+1,
+                                                        correct_count=current_stimulus.correct_count)
+                        elif count_coding == len(current_stimulus.texts) - 1:
+                            unit = Sequence_st_text_unit(text_units=current_stimulus.text_units,
+                                                         color=current_stimulus.color,
+                                                         text_height=current_stimulus.text_height,
+                                                         is_count_correct=True,
+                                                         unit_correct_count=0,
+                                                         correct_count=current_stimulus.correct_count+1)
+                            log_response(current_stimulus.text_units) # To record all matched event
+                        self.display_manager.show_stimulus(unit)
+
+        def multiple_input_handler(inputs, current_stimulus):
             print("proc multiple_input", inputs)
             log_response(inputs)
 
             if isinstance(self.display_manager.current_showing_stimlus, Sequence_st_text_unit):
                 self.display_manager.show_next_directly()
 
-        self.event_manager.single_input_handler = single_input_handler
-        self.event_manager.multiple_input_handler = multiple_input_handler
+        self.event_manager.set_single_input_handler(single_input_handler)
+        self.event_manager.set_multiple_input_handler(multiple_input_handler)
 
     def setting_log(self, iteration):
         self.stimulus_csv_manager = CsvManager(dir_path=self.data_dir_path,
                                                file_name="stimulus_" + self.participant_name + "_" + str(iteration))
         self.stimulus_csv_manager.write_header(
-            ["Step", "Event_Type", "Stimulus", "display_seconds", "start_seconds"])
+            ["Step", "Event_Type", "Stimulus", "display_seconds", "start_seconds"]
+        )
         self.response_csv_manager = CsvManager(dir_path=self.data_dir_path,
                                                file_name="response_" + self.participant_name + "_" + str(iteration))
         self.response_csv_manager.write_header(["Step", "Response", "seconds"])
@@ -621,6 +725,10 @@ class Experiment:
             start()
 
     def wait_blocks(self, blocks, iteration):
+        """
+        :param blocks: list of package
+        :param iteration: start block index
+        """
         def end():
             if iteration+1 < len(blocks):
                 # 기존꺼 멈추고
