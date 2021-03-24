@@ -25,8 +25,8 @@ psychopy's object positioning is depending on object's anchor
 when a object's position is (0,0) then psychopy match the object's anchor and psychopy's absolution position
 if the anchor is left(left boundar), the anchor point is matched to center position
 so, the left side point of box's position is 0
-
 """
+
 class Direct_fire_timer:
     """
     This class is made for call certain procedure when the time is reached by timer or when need to call directly
@@ -70,13 +70,15 @@ class Sequence_st_text_unit(St_Unit):
                  text_height=0.3,
                  is_count_correct=False,
                  unit_correct_count = 0,
-                 correct_count = 0):
+                 correct_count = 0,
+                 is_display_unit_correct = False):
         self.text_units = text_units
         self.showing_time = showing_time
         self.color = color
         self.text_height = text_height
         self.is_count_correct = is_count_correct
         if self.is_count_correct:
+            self.is_display_unit_correct = is_display_unit_correct
             self.unit_correct_count = unit_correct_count # increase the count when single text_unit is matched correctly
             self.correct_count = correct_count # increase the count when full sequence is matched correctly
 
@@ -232,6 +234,10 @@ class Psy_display_manager:
             self.win.close()
             return False
 
+    def call_stimulus_showing_handler(self, type, stimulus, showing_time):
+        if self.stimulus_showing_handler != None:
+            self.stimulus_showing_handler(type, stimulus, showing_time)
+
     def show_stimulus(self, stimulus):
         self.current_showing_stimlus = stimulus
 
@@ -239,8 +245,7 @@ class Psy_display_manager:
             self.intermediater.one_input_only()
 
             print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.image_path, stimulus.showing_time))
-            if self.stimulus_showing_handler != None:
-                self.stimulus_showing_handler("image", stimulus.image_path, stimulus.showing_time)
+            self.call_stimulus_showing_handler("image", stimulus.image_path, stimulus.showing_time)
         elif isinstance(stimulus, ISI_st_unit):
             text = self.visual.TextStim(win=self.win,
                                         text=stimulus.text,
@@ -251,8 +256,7 @@ class Psy_display_manager:
             text.draw()
             self.win.flip()
             print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.text, stimulus.showing_time))
-            if self.stimulus_showing_handler != None:
-                self.stimulus_showing_handler("ISI", stimulus.text, stimulus.showing_time)
+            self.call_stimulus_showing_handler("ISI", stimulus.text, stimulus.showing_time)
         elif isinstance(stimulus, BundleInterval_st_unit):
             self.intermediater.one_input_only()
             text = self.visual.TextStim(win=self.win,
@@ -264,8 +268,7 @@ class Psy_display_manager:
             text.draw()
             self.win.flip()
             print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.text, stimulus.showing_time))
-            if self.stimulus_showing_handler != None:
-                self.stimulus_showing_handler("Bundle Interval", stimulus.text, stimulus.showing_time)
+            self.call_stimulus_showing_handler("Bundle Interval", stimulus.text, stimulus.showing_time)
         elif isinstance(stimulus, Text_st_unit):
             self.intermediater.one_input_only()
             text = self.visual.TextStim(win=self.win,
@@ -277,28 +280,33 @@ class Psy_display_manager:
             text.draw()
             self.win.flip()
             print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.text, stimulus.showing_time))
-            if self.stimulus_showing_handler != None:
-                self.stimulus_showing_handler("single text", stimulus.text, stimulus.showing_time)
+            self.call_stimulus_showing_handler("single text", stimulus.text, stimulus.showing_time)
         elif isinstance(stimulus, Sequence_st_text_unit):
             # self.intermediater.one_multi_input_both(len(stimulus.texts))
             self.intermediater.one_input_only()
 
+            showing_stimulus = []
+            # prepare showing datas
             if stimulus.is_count_correct:
-                show_seq = []
+                # count of correct unit of sequence
+                correct_seq = []
                 for i in range(0, len(stimulus.texts)):
                     if i < stimulus.unit_correct_count:
-                        show_seq += "*"
+                        correct_seq += "*"
                     else:
-                        show_seq += stimulus.texts[i]
+                        correct_seq += stimulus.texts[i]
 
-                text = self.visual.TextStim(win=self.win,
-                                            text=" - ".join(show_seq),
-                                            height=stimulus.text_height,
-                                            bold=True,
-                                            colorSpace="rgb",
-                                            color=stimulus.color)
-                text.draw()
+                # showing stimulus
+                if stimulus.is_display_unit_correct == True:
+                    showing_stimulus = correct_seq
+                else:
+                    showing_stimulus = stimulus.texts
+            else:
+                showing_stimulus = stimulus.texts
 
+            # display
+            if stimulus.is_count_correct:
+                # Displaying count of correct sequence
                 count_correct = self.visual.TextStim(win=self.win,
                                                      text="*" * stimulus.correct_count,
                                                      height=0.1,
@@ -310,19 +318,16 @@ class Psy_display_manager:
                                                      )
                 count_correct.draw()
 
-                if self.stimulus_showing_handler != None:
-                    self.stimulus_showing_handler("seq texts", show_seq, stimulus.showing_time)
-            else:
-                text = self.visual.TextStim(win=self.win,
-                                            text=" - ".join(stimulus.texts),
-                                            height=stimulus.text_height,
-                                            bold=True,
-                                            colorSpace="rgb",
-                                            color=stimulus.color)
-                text.draw()
-                if self.stimulus_showing_handler != None:
-                    self.stimulus_showing_handler("seq texts", stimulus.texts, stimulus.showing_time)
+            text = self.visual.TextStim(win=self.win,
+                                        text=" - ".join(showing_stimulus),
+                                        height=stimulus.text_height,
+                                        bold=True,
+                                        colorSpace="rgb",
+                                        color=stimulus.color)
+            text.draw()
 
+            # callback
+            self.call_stimulus_showing_handler("seq texts", correct_seq, stimulus.showing_time)
 
             self.win.flip()
             print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.texts, stimulus.showing_time))
@@ -659,6 +664,7 @@ class Experiment:
             if isinstance(current_stimulus, Sequence_st_text_unit):
                 if current_stimulus.is_count_correct:
                     count_coding = current_stimulus.unit_correct_count
+
                     # show coded stimuli
                     if current_stimulus.texts[count_coding] == input:
                         if count_coding < len(current_stimulus.texts) - 1:
@@ -691,9 +697,7 @@ class Experiment:
     def setting_log(self, iteration):
         self.stimulus_csv_manager = CsvManager(dir_path=self.data_dir_path,
                                                file_name="stimulus_" + self.participant_name + "_" + str(iteration))
-        self.stimulus_csv_manager.write_header(
-            ["Step", "Event_Type", "Stimulus", "display_seconds", "start_seconds"]
-        )
+        self.stimulus_csv_manager.write_header(["Step", "Event_Type", "Stimulus", "display_seconds", "start_seconds"])
         self.response_csv_manager = CsvManager(dir_path=self.data_dir_path,
                                                file_name="response_" + self.participant_name + "_" + str(iteration))
         self.response_csv_manager.write_header(["Step", "Response", "seconds"])
