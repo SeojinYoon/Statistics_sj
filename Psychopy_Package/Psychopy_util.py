@@ -327,7 +327,8 @@ class Psy_display_manager:
             text.draw()
 
             # callback
-            self.call_stimulus_showing_handler("seq texts", correct_seq, stimulus.showing_time)
+            if stimulus.showing_time != 0:
+                self.call_stimulus_showing_handler("seq texts", showing_stimulus, stimulus.showing_time)
 
             self.win.flip()
             print(str.format("showing stimulus: {0}, showing time: {1}sec", stimulus.texts, stimulus.showing_time))

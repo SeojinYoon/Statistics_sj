@@ -95,5 +95,5 @@ exp = Experiment(monitor_size=[400,400],
                  valid_keys=["4", "3", "2", "1"],
                  input_device="keyboard")
 
-exp.wait_blocks(blocks=blocks[0:2],
+exp.wait_blocks(blocks=blocks,
                 iteration=0)
