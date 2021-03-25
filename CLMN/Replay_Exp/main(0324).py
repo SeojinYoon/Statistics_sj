@@ -22,7 +22,7 @@ sequence_showing_time = 6
 sequence1_color = [0,0,0]
 sequence2_color = [1,1,1]
 
-sequence_rest_time = 20
+sequence_rest_time = 24
 
 sequence_bundle_count_per_run = 12
 
