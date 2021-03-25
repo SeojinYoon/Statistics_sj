@@ -617,6 +617,8 @@ class Experiment:
                  stop_keys = [],
                  valid_keys = None,
                  input_device = "keyboard"):
+        self.previous_input = "" # replay 실험후 지워야
+
         """
         Setting Data
         """
@@ -657,14 +659,18 @@ class Experiment:
         def log_response(response):
             # ["Step", "Response", "seconds"]
             self.response_csv_manager.write_row([self.display_manager.current_step, response, time.time() - self.start_time])
+            print("response logging... step: ", self.display_manager.current_step, "response: ", response, "time: ", time.time() - self.start_time)
 
         def single_input_handler(input, current_stimulus):
             print("proc single input", input)
-            log_response(input)
 
             if isinstance(current_stimulus, Sequence_st_text_unit):
                 if current_stimulus.is_count_correct:
                     count_coding = current_stimulus.unit_correct_count
+
+                    if self.previous_input != input: # replay 실험후 지워야
+                        log_response(input)
+                    self.previous_input = input  # replay 실험후 지워야
 
                     # show coded stimuli
                     if current_stimulus.texts[count_coding] == input:
@@ -683,7 +689,10 @@ class Experiment:
                                                          unit_correct_count=0,
                                                          correct_count=current_stimulus.correct_count+1)
                             log_response(current_stimulus.text_units) # To record all matched event
+                            self.previous_input = "" # Clear(다음 시퀀스 입력 로그 찍을수 있도록)
                         self.display_manager.show_stimulus(unit)
+                else:
+                    log_response(input)
 
         def multiple_input_handler(inputs, current_stimulus):
             print("proc multiple_input", inputs)
