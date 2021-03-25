@@ -22,7 +22,36 @@ Measure
 import numpy as np
 import pandas as pd
 
-def mapping_data(stimuluses, responses):
+def mapping_data_current(stimuluses, responses):
+    """
+    Mapping
+    -> 시퀀스 데이터와 스텝이 같은 것 매핑
+
+    stimuluses: list of stimulus per session
+    responses: list of response per session
+    """
+    mapped_datas = []
+    for session_index in range(0, len(stimuluses)):
+        target_session_sti = stimuluses[session_index]  # Session 구분
+        target_session_sti_seqs = target_session_sti[target_session_sti["Event_Type"] == "seq texts"]
+
+        target_res = responses[session_index]
+
+        mapped_sti_response = pd.DataFrame()
+        for row_index in range(0, len(target_session_sti_seqs)): # stimulus의 row마다 response와의 join 연산 수행
+            seq_sti = target_session_sti_seqs.iloc[row_index]
+            target_step = seq_sti["Step"]
+
+            response_by_step = target_res[target_res["Step"] == target_step]
+
+            mapping_by_step = response_by_step.merge(pd.DataFrame(seq_sti).T, left_on="Step", right_on="Step")
+            mapping_by_step.columns = ["Step", "Response", "response_seconds", "Event_Type", "Stimulus", "display_seconds",
+                                       "stimulus_start_seconds"]
+            mapped_sti_response = mapped_sti_response.append(mapping_by_step)
+        mapped_datas.append(mapped_sti_response)
+    return mapped_datas
+
+def mapping_data_current_next(stimuluses, responses):
     """
     Mapping
     -> 시퀀스 데이터와 스텝이 같거나 한 스텝 뒤에 (ISI 혹은 bundle Interval 부분) 에서의 시퀀스 입력을 보고 stimulus와 매핑한다.(여러가지 입력이 들어갈 수 있으니, step 별로 여러 반응이 나올것임)

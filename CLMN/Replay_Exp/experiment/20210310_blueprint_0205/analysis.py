@@ -1,8 +1,8 @@
 
 # Configuration(Need to setting)
 project_home_path = "/Users/yoonseojin/Statistics_sj"
-right_hand_data_dir_path = "/CLMN/Replay_Exp/experiment/20210310(blueprint: 0205)/right hand"  # Right Hand Data Path
-left_hand_data_dir_path = "/CLMN/Replay_Exp/experiment/20210310(blueprint: 0205)/left hand"  # Left Hand
+right_hand_data_dir_path = "/CLMN/Replay_Exp/experiment/20210310_blueprint_0205/right hand"  # Right Hand Data Path
+left_hand_data_dir_path = "/CLMN/Replay_Exp/experiment/20210310_blueprint_0205/left hand"  # Left Hand
 
 import os
 os.chdir(project_home_path)
@@ -13,7 +13,7 @@ pd.set_option("display.max_columns", 500)
 pd.set_option("display.max_rows", 500)
 
 from Visualization_Package import F_Visualize
-from CLMN.Replay_Exp.experiment.Replay_Experiment_Tool import mapping_data, multi_response_only, time_difference, avg_time_difference_per_sessions, accuracy
+from CLMN.Replay_Exp.experiment.Replay_Experiment_Tool import mapping_data_current_next, multi_response_only, time_difference, avg_time_difference_per_sessions, accuracy
 from File_Package.sj_file_system import CsvManager
 
 stimuluses = []
@@ -25,7 +25,7 @@ for i in range(0, 8):
     responses.append( CsvManager(dir_path=right_hand_data_dir_path, file_name=response_file_name).read_csv_from_pandas() )
 stimuluses[-1] = stimuluses[-1][:-1] # remove not necessary data
 
-mapped_d = mapping_data(stimuluses, responses)
+mapped_d = mapping_data_current_next(stimuluses, responses)
 mapped_d = multi_response_only(mapped_d)
 mapped_d = time_difference(mapped_d)
 avg_time_difference_per_sess = avg_time_difference_per_sessions(mapped_d)
@@ -84,7 +84,7 @@ for i in range(0, 2):
     responses.append( CsvManager(dir_path=left_hand_data_dir_path, file_name=response_file_name).read_csv_from_pandas() )
 stimuluses[-1] = stimuluses[-1][:-1] # remove not necessary data
 
-mapped_d = mapping_data(stimuluses, responses)
+mapped_d = mapping_data_current_next(stimuluses, responses)
 mapped_d = multi_response_only(mapped_d)
 mapped_d = time_difference(mapped_d)
 avg_time_difference_per_sess_left = avg_time_difference_per_sessions(mapped_d)
