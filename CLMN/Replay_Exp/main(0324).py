@@ -1,34 +1,9 @@
-
 """
-목표: sequence만 부호화하는 것
-
-제거해야 할 사항
-숫자 하나만 입력하는 것 다 없애버려야함
-
-수정해야 할 사항
-- 시퀀스가 학습되었는지에 대한 보상 - 별로 표현(오른쪽 위)
-- 버튼 입력 들어오면 포즈 같은거 해야함(누르고 있으면 계속 들어옴)
-- 런 횟수 8개
-
-수정 blue print
-- 휴식 시간 20초
-- 시퀀스 5초
-- 1block - 시퀀스 48개(12분)
-
-- block - 24개의 set 존재
-
-set1: sequence 1 - sequence 2
-set2: sequence 2 - sequence 1
-
+Configuration
 """
-
-
-"""
-Library Settings
-"""
-
-# source path 수정 필요
-source_path = "/Users/yoonseojin/Statistics_sj/CLMN/Replay_Exp"
+source_path = "/Users/yoonseojin/Statistics_sj/CLMN/Replay_Exp" # source path 수정 필요
+data_dir_path = source_path
+participant_name = "seojin"
 
 import os
 os.chdir(source_path)
@@ -51,6 +26,9 @@ sequence_rest_time = 20
 
 sequence_bundle_count_per_run = 12
 
+"""
+Data
+"""
 seq_bundle1 = Sequence_st_bundle([
     Sequence_st_text_unit(sequence1, showing_time=sequence_showing_time, color=sequence1_color, text_height=0.1, is_count_correct=True),
     Sequence_st_text_unit(sequence2, showing_time=sequence_showing_time, color=sequence2_color, text_height=0.1, is_count_correct=True)
@@ -82,9 +60,6 @@ def make_blocks(seq_bundle1, seq_bundle2, run_count = 8):
 blocks = make_blocks(seq_bundle1, seq_bundle2, run_count=8)
 
 # Experiments
-data_dir_path = source_path
-participant_name = "seojin"
-
 exp = Experiment(monitor_size=[400,400],
                  is_full_screen = False,
                  data_dir_path = data_dir_path,
