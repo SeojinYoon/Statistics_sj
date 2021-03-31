@@ -1,29 +1,27 @@
 
-import matplotlib.pylab as plt
-plt.style.use('seaborn-whitegrid')
-import numpy as np
+from File_Package.sj_file_system import CsvManager
+import os
 
-x = np.linspace(0, 10, 30)
-y = np.sin(x)
+csv_m = CsvManager(os.getcwd(), "ANIMAL_INS")
+csv_m.write_header(["ANIMAL_ID", "ANIMAL_TYPE", "DATETIME"])
+csv_m.write_row([1, "Dog", '2020-10-14 15:38:00'])
+csv_m.write_row([2, "Dog", '2020-10-23 11:42:00'])
+csv_m.write_row([3, "Dog",'2020-11-03 15:04:00'])
+csv_m.write_row([4, "Dog", '2020-11-18 17:03:00'])
+csv_m.write_row([5, "Iguana", '2021-01-18 13:00:00'])
+csv_m.write_row([6, "Snake", '2021-03-18 12:00:00'])
+csv_m.write_row([7, "Dog", '2021-03-18 09:03:00'])
+csv_m.write_row([8, "Iguana", '2021-03-31 09:00:00'])
+csv_m.write_row([9, "Dog", '2021-03-21 09:00:00'])
 
-plt.plot(x, y, 'o')
-
-from Preprocessing_Package import sj_util
-from Preprocessing_Package import sj_preprocessing
-sj_util.partition_d1(10, 20, 10)
-
-sj_preprocessing.counter([1,2,3], [(0,1), (1,2), (2,3)], "Left")
-
-def f(x, y):
-    return np.sin(x) ** 10 + np.cos(10 + y * x) * np.cos(x)
-
-x = np.linspace(0, 5, 50)
-y = np.linspace(0, 5, 40)
-
-X, Y = np.meshgrid(x,y)
-Z = f(X,Y)
-
-plt.contour(X, Y, Z, 20, cmap='RdGy');
-plt.colorbar()
-
-Z.shape
+csv_m = CsvManager(os.getcwd(), "ANIMAL_INFO")
+csv_m.write_header(["ANIMAL_ID", "INTAKE_CONDITION", "ANIMAL_NAME", "SEX_UPON_INTAKE"])
+csv_m.write_row([1, 'Normal', 'Jack', 'Neutered Male'])
+csv_m.write_row([2, 'Normal', 'Disciple', 'Intact Male'])
+csv_m.write_row([3, 'Normal', 'Katie', 'Spayed Female'])
+csv_m.write_row([4, 'Normal', 'Anna', 'Spayed Female'])
+csv_m.write_row([5, 'Wounded', 'Cherry', 'Intact Male'])
+csv_m.write_row([6, 'Normal', 'Abo', 'Intact FeMale'])
+csv_m.write_row([7, 'Normal', 'Perry', 'Intact FeMale'])
+csv_m.write_row([8, 'Wounded', 'Uri', 'Intact FeMale'])
+csv_m.write_row([9, 'Normal', 'Sun', 'Neutered Male'])

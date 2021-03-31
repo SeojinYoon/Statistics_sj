@@ -87,6 +87,12 @@ def multi_response_only(mapped_datas):
         mapped_datas[session_index] = mapped_datas[session_index][mapped_datas[session_index]["Response"].apply(lambda x: len(x)) > 1]
     return mapped_datas
 
+def single_response_only(mapped_datas):
+    # Multi response 데이터만 남겨둠
+    for session_index in range(0, len(mapped_datas)):
+        mapped_datas[session_index] = mapped_datas[session_index][mapped_datas[session_index]["Response"].apply(lambda x: len(x)) == 1]
+    return mapped_datas
+
 def time_difference(mapped_datas):
     # Time Difference 계산(반응 - 자극)
     for session_index in range(0, len(mapped_datas)):
