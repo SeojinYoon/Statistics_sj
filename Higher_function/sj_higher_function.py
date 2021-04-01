@@ -1,4 +1,5 @@
 from inspect import signature
+import itertools
 
 def apply_composition_function(x, functions):
     """
@@ -63,6 +64,9 @@ def apply_function(f, args):
     else:
         raise Exception("the number of function's parameter is not matched args")
 
+def flatten_2d(a_2dlist):
+    return list(itertools.chain(*a_2dlist))
+
 if __name__ == "__main__":
     apply_function(lambda x,a,b: x+a+b, [1,2,3])
 
@@ -71,3 +75,5 @@ if __name__ == "__main__":
     recursive_map([1, [2, 3, [4],5],6], lambda x: x**2)
 
     apply_composition_function([1,2,3], [lambda x: x*2, lambda x: x**2])
+
+    flatten_2d([[1,2], [3,4]])
