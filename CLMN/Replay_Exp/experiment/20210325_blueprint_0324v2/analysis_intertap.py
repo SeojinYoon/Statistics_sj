@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from CLMN.Replay_Exp.experiment.Replay_Experiment_Tool import mapping_data_current, single_response_only
 from File_Package.sj_file_system import CsvManager
 from Preprocessing_Package import sj_util
-from Higher_function.sj_higher_function import flatten_2d, recursive_map
+from Higher_function.sj_higher_function import flatten_2d
 import matplotlib.patches as mpatches
 
 seq1 = ["4", "1", "3", "2", "4"]
@@ -130,7 +130,6 @@ def all_sequence_inter_step_in_runs(steps, response_times):
                                                                               partition_count=parition_count)))
         all_inter_steps_in_run.append(inter_steps)
     return all_inter_steps_in_run
-
 
 def response_complete_sequence(steps, response_times):
     # complete sequence 단위로 intertap interval을 묶음

@@ -45,3 +45,17 @@ with open('./participant_' + '.csv', 'w', newline='') as f:
             else:
                 print(keys[0])
                 makewrite.writerow([0, keys[0], time.time()])
+
+def f(x):
+    return 630 * ( (1/9)*(x**9) - (1/2)*(x**8) + (6/7)*(x**7) - (2/3)*(x**6) + (1/5)*(x**5) )
+
+import numpy as np
+sigma = 1/np.sqrt(44)
+mu = 1/2
+
+upper = mu + 2*sigma
+lower = mu - 2*sigma
+
+f(upper) - f(lower)
+
+
