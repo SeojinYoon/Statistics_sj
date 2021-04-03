@@ -3,7 +3,7 @@ Configuration
 """
 source_path = "/Users/yoonseojin/Statistics_sj/CLMN/Replay_Exp" # source path 수정 필요
 data_dir_path = source_path
-participant_name = "seojin"
+participant_name = "taehyun"
 
 import os
 os.chdir(source_path)
@@ -61,7 +61,7 @@ blocks = make_blocks(seq_bundle1, seq_bundle2, run_count=8)
 
 # Experiments
 exp = Experiment(monitor_size=[400,400],
-                 is_full_screen = False,
+                 is_full_screen = True,
                  data_dir_path = data_dir_path,
                  participant_name = participant_name,
                  ready_keys=["r"],

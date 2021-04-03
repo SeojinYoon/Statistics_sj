@@ -4,7 +4,6 @@ left_hand_data_dir_path = project_home_path + "/CLMN/Replay_Exp/experiment/20210
 participant_name = "jonghyuk"
 
 import os
-
 os.chdir(project_home_path)
 
 import pandas as pd
@@ -20,6 +19,7 @@ from CLMN.Replay_Exp.experiment.Replay_Experiment_Tool import mapping_data_curre
 from File_Package.sj_file_system import CsvManager
 from Preprocessing_Package import sj_util
 from Higher_function.sj_higher_function import flatten_2d, recursive_map
+import matplotlib.patches as mpatches
 
 seq1 = ["4", "1", "3", "2", "4"]
 seq2 = ["1", "4", "2", "3", "1"]
@@ -29,7 +29,6 @@ seq1_color = "blue"
 seq2_color = "red"
 
 divided_count = 4 # 4개 interval = 모든 시퀀스 입력 완료
-
 
 def find_index(previous_datas, target_seq):
     """
@@ -204,7 +203,6 @@ def plot_per_sequence(run_index, intertap_intervals):
         plt.axvspan(step+1, step+2, facecolor='gray', alpha=0.5)
 
     # draw Legend
-    import matplotlib.patches as mpatches
     patch_seq1 = mpatches.Patch(color=seq1_color, label=seq1)
     patch_seq2 = mpatches.Patch(color=seq2_color, label=seq2)
     plt.legend(handles=[patch_seq1, patch_seq2])
