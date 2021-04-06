@@ -213,6 +213,9 @@ class Psy_display_manager:
         from psychopy import visual
 
         self.visual = visual
+        from psychopy import visual, monitors
+        mon = monitors.Monitor('SonyG55')  # fetch the most recent calib for this monitor
+        mon.setDistance(114)  # further away than normal?
         self.win = self.visual.Window(size=size,
                                       color=color,
                                       colorSpace='rgb',
