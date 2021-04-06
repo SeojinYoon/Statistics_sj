@@ -151,6 +151,7 @@ def find_index(previous_datas, target_seq):
     }
 
 def intertap_interval(mapped_datas, seq1, seq2, seq1_name, seq2_name):
+    # 맞는 입력만 처리
     response_times_across_runs = []
     for run_index in range(0, len(mapped_datas)):
         response_times_per_run = []
@@ -277,7 +278,7 @@ def plot_per_sequence(run_index, stimuluses, intertap_intervals, seq1_name, seq2
     patch_seq2 = mpatches.Patch(color=seq2_color, label=seq2)
     plt.legend(handles=[patch_seq1, patch_seq2])
 
-def all_inter_step_in_runs(steps, response_times, divided_count):
+def all_inter_step_in_runs(steps, response_times):
     """
     response 하나하나 별로 그래프 드로잉
     """
@@ -463,6 +464,119 @@ def plot_learning(run_index, intertap_intervals, divided_count):
     patch_avg = mpatches.Patch(color="red", label="avg")
     plt.legend(handles=[patch_avg])
 
+
+def seq_means_in_run(run_length, intertap_intervals, divided_count):
+    run_mean_seq_values = []
+    for run_index in range(0, run_length):
+        mean_seq_values = []
+        for steps in intertap_intervals[run_index]:
+            step_means = []
+
+            responsess = steps["Response_times"]
+            response_times = list(map(lambda x: x[1], responsess))
+
+            sum = 0
+            for i in range(0, len(response_times)):
+                if i % divided_count == 0:
+                    if sum != 0:
+                        step_means.append(sum / divided_count)
+                    sum = 0
+                sum += response_times[i]
+            mean_seq_values.append(step_means)
+        run_mean_seq_values.append(mean_seq_values)
+    return run_mean_seq_values
+
+
+def get_mean_coords(run_length, intertap_intervals, divided_count):
+    from Preprocessing_Package import sj_util
+    mean_seqs = seq_means_in_run(4, intertap_intervals, divided_count)
+
+    run_coords = []
+    for run_index in range(0, run_length):
+        coords = []
+        for i in range(0, len(mean_seqs[run_index])):
+            step = i * 2
+            step_means = mean_seqs[run_index][i]
+
+            start_point = 0  # fixed value
+            x_values = list(map(lambda x: x[start_point], sj_util.partition_d1(step, step + 1, len(step_means))))
+
+            coords.append(list(zip(x_values, step_means)))
+        run_coords.append(coords)
+    return run_coords
+
+
+def draw_avg_reaction(intertap_intervals, divided_count, run_index, stimuluses, seq1_steps, seq1_name, seq2_name, seq1, seq2, seq1_color, seq2_color):
+    coords = get_mean_coords(len(stimuluses), intertap_intervals, divided_count)
+
+    x_values = list(map(lambda responses: list(map(lambda response: response[0], responses)), coords[run_index]))
+    y_values = list(map(lambda responses: list(map(lambda response: response[1], responses)), coords[run_index]))
+
+    from Higher_function.sj_higher_function import flatten_2d
+    x_values = flatten_2d(x_values)
+    y_values = flatten_2d(y_values)
+
+    for i in range(0, len(x_values)):
+        if int(x_values[i]) in seq1_steps:
+            plt.scatter(x=x_values[i], y=y_values[i], color=seq1_color)
+        else:
+            plt.scatter(x=x_values[i], y=y_values[i], color=seq2_color)
+
+    # Show rest
+    steps = np.array(list(map(lambda x: x["Step"], intertap_intervals[run_index])))
+    for step in steps:
+        plt.axvspan(step + 1, step + 2, facecolor='gray', alpha=0.5)
+
+    plt.ylabel("Average reaction time per sequence")
+    plt.xlabel("Step number")
+
+    # draw Legend
+    import matplotlib.patches as mpatches
+    patch_seq1 = mpatches.Patch(color=seq1_color, label=seq1)
+    patch_seq2 = mpatches.Patch(color=seq2_color, label=seq2)
+    plt.legend(handles=[patch_seq1, patch_seq2])
+
+def draw_continuos_mean_sequences(intertap_intervals, divided_count, stimuluses, seq1, seq2, seq1_name, seq2_name, seq1_color, seq2_color):
+    from CLMN.Replay_Exp.experiment.Replay_Experiment_Tool import get_mean_coords
+    from Higher_function.sj_higher_function import flatten
+
+    coords = get_mean_coords(len(stimuluses), intertap_intervals, divided_count)
+
+    padding = 1
+    last_step = 0
+    for run_index in range(0, len(stimuluses)):
+        seq1_steps = np.array(
+            list(stimuluses[run_index][stimuluses[run_index]["Stimulus"] == seq1_name]["Step"])) + last_step
+
+        x_values = list(map(lambda responses: list(map(lambda response: response[0], responses)), coords[run_index]))
+        y_values = list(map(lambda responses: list(map(lambda response: response[1], responses)), coords[run_index]))
+        x_values = flatten(x_values)
+        y_values = flatten(y_values)
+
+        # Show rest
+        steps = np.array(list(map(lambda x: x["Step"], intertap_intervals[run_index]))) + last_step
+        for i in range(0, len(steps)):
+            step = steps[i]
+
+            if i != len(steps) - 1:
+                plt.axvspan(step + 1, step + 2, facecolor='gray', alpha=0.5)
+
+        # draw scatter
+        x_values = np.array(x_values) + last_step
+        last_step = int(max(x_values)) + padding
+
+        for i in range(0, len(x_values)):
+            if int(x_values[i]) in seq1_steps:
+                plt.scatter(x=x_values[i], y=y_values[i], color=seq1_color)
+            else:
+                plt.scatter(x=x_values[i], y=y_values[i], color=seq2_color)
+
+        # draw Legend
+        import matplotlib.patches as mpatches
+
+        patch_seq1 = mpatches.Patch(color=seq1_color, label=seq1)
+        patch_seq2 = mpatches.Patch(color=seq2_color, label=seq2)
+        plt.legend(handles=[patch_seq1, patch_seq2])
 
 """
 2차 분석 개요

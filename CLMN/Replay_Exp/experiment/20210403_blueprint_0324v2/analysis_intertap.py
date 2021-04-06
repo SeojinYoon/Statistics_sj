@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from CLMN.Replay_Exp.experiment.Replay_Experiment_Tool import mapping_data_current, single_response_only, \
-    intertap_interval, plot_per_sequence, get_intertap_response, drawing_graph, draw_continuos_graph, draw_multi_graph, plot_learning
+    intertap_interval, plot_per_sequence, get_intertap_response, drawing_graph, draw_continuos_graph, draw_multi_graph, plot_learning, draw_avg_reaction
 from File_Package.sj_file_system import CsvManager
 
 seq1 = ["4", "1", "3", "2", "4"]
@@ -48,7 +48,11 @@ intertap_intervals = intertap_interval(mapped_datas=mapped_d,
                                        seq1_name=seq1_name,
                                        seq2_name=seq2_name)
 
-plot_per_sequence(run_index= 0,
+"""
+맞춘 시퀀스 드로잉
+"""
+run_index = 0
+plot_per_sequence(run_index= run_index,
                   stimuluses=stimuluses,
                   intertap_intervals=intertap_intervals,
                   seq1_name=seq1_name,
@@ -57,11 +61,103 @@ plot_per_sequence(run_index= 0,
                   seq2_color=seq2_color,
                   seq1=seq1,
                   seq2=seq2,
-                  divided_count=divided_count
-                  )
+                  divided_count=divided_count)
+plt.title("Taehyun, right, run " + str(run_index))
+
 """
-시퀀스 별로 그래프 드로잉
+맞춘 시퀀스 평균 드로잉
 """
+run_index = 0
+draw_avg_reaction(intertap_intervals,
+                  divided_count=divided_count,
+                  run_index=run_index,
+                  stimuluses=stimuluses,
+                  seq1_steps=list(stimuluses[run_index][stimuluses[run_index]["Stimulus"] == seq1_name]["Step"]),
+                  seq1_name=seq1_name,
+                  seq2_name=seq2_name,
+                  seq1=seq1,
+                  seq2=seq2,
+                  seq1_color=seq1_color,
+                  seq2_color=seq2_color)
+plt.title("Taehyun, right, run " + str(run_index))
+
+
+"""
+Continuos average sequence
+
+# 1
+"""
+from CLMN.Replay_Exp.experiment.Replay_Experiment_Tool import draw_continuos_mean_sequences
+draw_continuos_mean_sequences(intertap_intervals= intertap_intervals,
+                                divided_count= divided_count,
+                                stimuluses= stimuluses,
+                                seq1= seq1,
+                                seq2= seq2,
+                                seq1_name= seq1_name,
+                                seq2_name= seq2_name,
+                                seq1_color= seq1_color,
+                                seq2_color= seq2_color)
+plt.ylabel("avg intertap per sequence")
+plt.xlabel("step number")
+plt.title("Taehyun, right, run 0~3")
+
+"""
+스텝당 몇번 맞췄는지 표현
+
+# 2
+"""
+divided_count = 4
+
+run_indexes= []
+steps = []
+step_corrects = []
+for run_index in range(0, len(stimuluses)):
+    response_times = list(map(lambda x: list(map(lambda a: a[1], x["Response_times"])), intertap_intervals[run_index]))
+    step_correct = list(map(lambda x: int(len(x) / divided_count), response_times))
+
+    for i in range(0, len(step_correct)):
+        run_indexes.append(run_index)
+        steps.append(i*2)
+        step_corrects.append(step_correct[i])
+
+import pandas as pd
+run_data = pd.Series(run_indexes)
+
+data_ranges = []
+for run_index in range(0, len(stimuluses)):
+    start_index = run_data[run_data == run_index].index[0]
+    end_index = run_data[run_data == run_index].index[-1]
+
+    data_ranges.append([start_index, end_index])
+
+colors=[]
+for run_index in range(0, len(stimuluses)):
+    t_steps = steps[data_ranges[run_index][0]: data_ranges[run_index][1]+1]
+    heights = step_corrects[data_ranges[run_index][0]: data_ranges[run_index][1]+1]
+    bar_width = 0.35
+
+    color = ""
+    if run_index == 0:
+        color = "black"
+    elif run_index == 1:
+        color = "green"
+    elif run_index == 2:
+        color = "blue"
+    elif run_index == 3:
+        color = "purple"
+    colors.append(color)
+
+    plt.bar(x=np.array(t_steps) + bar_width*run_index, height=heights, width=bar_width, color=color)
+plt.xticks(list(set(steps)), list(set(steps)))
+import matplotlib.patches as mpatches
+c1 = mpatches.Patch(color=colors[0], label="run 0")
+c2 = mpatches.Patch(color=colors[1], label="run 1")
+c3 = mpatches.Patch(color=colors[2], label="run 2")
+c4 = mpatches.Patch(color=colors[3], label="run 3")
+plt.legend(handles=[c1, c2, c3, c4])
+plt.xlabel("Step number")
+plt.ylabel("Correct count")
+plt.title("Taehyun correct count run 0~3")
 
 # Drawing
 # Show raw data
@@ -78,6 +174,7 @@ drawing_graph(coords=coords,
               seq1=seq1,
               seq2=seq2)
 plt.title("Taehyun right, run: 0")
+
 
 """
 continuous graph
@@ -119,7 +216,9 @@ MOnGs
 plot_learning(0, intertap_intervals, divided_count=divided_count)
 
 """
-몇개 맞았는지 찍어보기 
+몇개 맞았는지 찍어보기
+
+# 3
 """
 from CLMN.Replay_Exp.experiment.Replay_Experiment_Tool import multi_response_only, time_difference
 mapped_d = mapping_data_current(stimuluses, responses)
